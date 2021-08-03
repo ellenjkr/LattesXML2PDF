@@ -11,6 +11,7 @@ class App():
 		self.presentation = self.get_presentation() # Get author presentation
 		self.abstract = self.get_abstract() # Get author abstract
 		self.identification = self.get_identification() # Get author identification
+		self.address = self.get_address() # Get professional address
 
 	def open_file(self):
 		xml_file = ET.parse(self.resume_path) # Open file
@@ -66,6 +67,36 @@ class App():
 		orcid_id = general_data.attrib['ORCID-ID']
 		lattes_id = self.xml_file.attrib['NUMERO-IDENTIFICADOR']
 
-		identification = {"Nome": author_name, "Nome em citações bibliográficas": citation_name, "Lattes iD": lattes_id, "Orcid iD": orcid_id}
+		identification = {"Nome": author_name, "Nome em citações bibliográficas": citation_name, "Lattes iD": lattes_id, "Orcid iD": orcid_id} # Build dictionary with the data
 
 		return identification
+
+	def get_address(self):
+		# Find the tag
+		xml_path = 'ENDERECO-PROFISSIONAL'
+		institution_address = self.xml_file.find(f".//{xml_path}")
+		
+		# Get data
+		institution = institution_address.attrib["NOME-INSTITUICAO-EMPRESA"]
+		orgao_name = institution_address.attrib["NOME-ORGAO"]
+		address = institution_address.attrib["LOGRADOURO-COMPLEMENTO"]
+		district = institution_address.attrib["BAIRRO"]
+		cep = institution_address.attrib["CEP"]
+		city = institution_address.attrib["CIDADE"]
+		uf = institution_address.attrib["UF"]
+		country = institution_address.attrib["PAIS"]
+		mailbox = institution_address.attrib["CAIXA-POSTAL"]
+		ddd = institution_address.attrib["DDD"]
+		telephone = institution_address.attrib["TELEFONE"]
+		fax = institution_address.attrib["FAX"]
+
+		first_line = f"{institution}, {orgao_name}"
+		second_line = address
+		third_line = district
+		fourth_line = f"{cep} - {city}, {uf} - {country} - Caixa-postal: {mailbox}"
+		fifth_line = f"Telefone: ({ddd}) {telephone}"
+		sixth_line = f"Fax: ({ddd}) {fax}"
+
+		address = [first_line, second_line, third_line, fourth_line, fifth_line, sixth_line]
+
+		return address

@@ -5,11 +5,12 @@ from docx.shared import Pt
 
 
 class WordFile():
-	def __init__(self, presentation, abstract, identification):
+	def __init__(self, presentation, abstract, identification, address):
 		super(WordFile, self).__init__()
 		self.presentation = presentation
 		self.abstract = abstract
 		self.identification = identification
+		self.address = address
 
 		self.document = Document()
 
@@ -17,12 +18,13 @@ class WordFile():
 		self.add_presentation()
 		self.add_abstract()
 		self.add_identification()
+		self.add_address()
 
 	def define_style(self):
 		style = self.document.styles['Normal']
 		font = style.font
 		font.name = 'Arial'
-		font.size = Pt(12)
+		font.size = Pt(10)
 
 	def add_presentation(self):
 		self.document.add_heading(self.presentation[0], 1) # Add the name as a title
@@ -54,6 +56,19 @@ class WordFile():
 		for key, value in self.identification.items():
 		    row_cells = table.add_row().cells
 		    row_cells[0].text = key
+		    row_cells[1].text = value
+
+	def add_address(self):
+		self.document.add_heading("Endereço", 1) # Add "Endereço" as a title
+
+		table = self.document.add_table(rows=0, cols=2)
+
+		row_cells = table.add_row().cells
+		row_cells[0].text = "Endereço Profissional"
+		row_cells[1].text = self.address[0]
+		
+		for value in self.address[1:]:
+		    row_cells = table.add_row().cells
 		    row_cells[1].text = value
 
 	def save_document(self, document_name):
