@@ -5,12 +5,15 @@ from docx.shared import Pt
 
 
 class WordFile():
-	def __init__(self, presentation, abstract, identification, address):
+	def __init__(self, presentation, abstract, identification, address, complete_articles, incomplete_articles, books):
 		super(WordFile, self).__init__()
 		self.presentation = presentation
 		self.abstract = abstract
 		self.identification = identification
 		self.address = address
+		self.complete_articles = complete_articles
+		self.incomplete_articles = incomplete_articles
+		self.books = books
 
 		self.document = Document()
 
@@ -19,6 +22,9 @@ class WordFile():
 		self.add_abstract()
 		self.add_identification()
 		self.add_address()
+		self.add_complete_articles()
+		# self.add_incomplete_articles()
+		self.add_books()
 
 	def define_style(self):
 		style = self.document.styles['Normal']
@@ -70,6 +76,28 @@ class WordFile():
 		for value in self.address[1:]:
 		    row_cells = table.add_row().cells
 		    row_cells[1].text = value
+
+	def add_complete_articles(self):
+		self.document.add_heading("Artigos completos publicados em periódicos", 1) # Add "Artigos publicados em periódicos" as a title
+		
+		for article in self.complete_articles:
+			paragraph = self.document.add_paragraph(article, style='List Bullet')
+			
+			# Format paragraph
+			paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+			paragraph_format = paragraph.paragraph_format
+			paragraph_format.line_spacing = Pt(15)
+
+	def add_books(self):
+		self.document.add_heading("Livros publicados/organizados ou edições", 1) # Add "Livros publicados/organizados ou edições" as a title
+		
+		for book in self.books:
+			paragraph = self.document.add_paragraph(book, style='List Bullet')
+					
+			# Format paragraph
+			paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+			paragraph_format = paragraph.paragraph_format
+			paragraph_format.line_spacing = Pt(15)
 
 	def save_document(self, document_name):
 		self.document.save(f'{document_name}.docx')

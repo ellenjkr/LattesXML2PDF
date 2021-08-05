@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as ET
+import pandas as pd
 
 
 class App():
@@ -8,11 +9,13 @@ class App():
 		
 		self.xml_file = self.open_file()
 		
-		self.presentation = self.get_presentation() # Get author presentation
 		self.abstract = self.get_abstract() # Get author abstract
+		self.presentation = self.get_presentation() # Get author presentation
 		self.identification = self.get_identification() # Get author identification
 		self.address = self.get_address() # Get professional address
-
+		self.complete_articles, self.incomplete_articles = self.get_articles() # Get articles
+		self.books = self.get_books()
+		
 	def open_file(self):
 		xml_file = ET.parse(self.resume_path) # Open file
 		xml_file = xml_file.getroot()
@@ -90,6 +93,7 @@ class App():
 		telephone = institution_address.attrib["TELEFONE"]
 		fax = institution_address.attrib["FAX"]
 
+		# Separate the data through lines
 		first_line = f"{institution}, {orgao_name}"
 		second_line = address
 		third_line = district
@@ -100,3 +104,120 @@ class App():
 		address = [first_line, second_line, third_line, fourth_line, fifth_line, sixth_line]
 
 		return address
+
+	def get_authors_string(self, xml_child):
+		authors_string = ""
+		authors = xml_child.findall(f".//AUTORES")
+		for pos, author in enumerate(authors):
+			if pos != 0:
+				authors_string += '; '
+			authors_string += author.attrib['NOME-PARA-CITACAO']
+
+		return authors_string
+
+	def sort_by_key(self, data_dict, key, ascending=True):
+		data_df = pd.DataFrame(data_dict)
+		data_df.sort_values(by=[key], inplace=True, ascending=ascending)
+		data_df.reset_index(drop=True, inplace=True)
+
+		return data_df
+
+	def get_articles_strings(self, articles_df):
+		complete_articles_strings = []
+		incomplete_articles_strings = []
+		for pos, article in enumerate(articles_df["title"]):
+			article_string = ""
+			article_string += f"{articles_df['authors'][pos]}. {article}. {articles_df['journal'][pos]}, {articles_df['vol'][pos]}, {articles_df['pages'][pos]}, {articles_df['year'][pos]}."
+
+			if articles_df["nature"][pos] == 'COMPLETO':
+				complete_articles_strings.append(article_string)
+			else:
+				incomplete_articles_strings.append(article_string)
+
+		return (complete_articles_strings, incomplete_articles_strings)
+
+	def get_articles(self):
+		# Find the articles
+		xml_path = 'ARTIGO-PUBLICADO'
+		articles = self.xml_file.findall(f".//{xml_path}")
+
+		# Define articles dictionary
+		articles_dict = {"title": [], "year": [], "journal": [], "vol": [], "pages": [], "authors": [], "nature": []}
+
+		for article in articles:
+			# Get the data
+			article_basic_data = article.find(f".//DADOS-BASICOS-DO-ARTIGO")
+			title = article_basic_data.attrib['TITULO-DO-ARTIGO']
+			year = int(article_basic_data.attrib['ANO-DO-ARTIGO'])
+			nature = article_basic_data.attrib['NATUREZA']
+
+			article_details = article.find(f".//DETALHAMENTO-DO-ARTIGO")
+			journal = article_details.attrib['TITULO-DO-PERIODICO-OU-REVISTA']
+			vol = f"v. {article_details.attrib['VOLUME']}"
+			pages = f"p. {article_details.attrib['PAGINA-INICIAL']}-{article_details.attrib['PAGINA-FINAL']}"
+
+			authors_string = self.get_authors_string(article)
+
+			# Add data to the dictionary
+			articles_dict["title"].append(title)
+			articles_dict["year"].append(year)
+			articles_dict["journal"].append(journal)
+			articles_dict["vol"].append(vol)
+			articles_dict["pages"].append(pages)
+			articles_dict["authors"].append(authors_string)
+			articles_dict["nature"].append(nature)
+
+		# Sort articles by year
+		articles_df = self.sort_by_key(articles_dict, "year", ascending=False)
+		
+		# Generate strings for each article
+		complete_articles_strings, incomplete_articles_strings = self.get_articles_strings(articles_df)
+
+		return (complete_articles_strings, incomplete_articles_strings)
+	
+	def get_books_strings(self, books_df):
+		books_strings = []
+		for pos, book in enumerate(books_df["title"]):
+			book_string = ""
+			book_string = f"{books_df['authors'][pos]}. {book}. {books_df['edition'][pos]}. ed. {books_df['publisher_city'][pos]}: {books_df['publisher'][pos]}, {books_df['year'][pos]}. v. {books_df['vol'][pos]}. {books_df['pages'][pos]}p."
+			books_strings.append(book_string)
+
+		return books_strings
+
+	def get_books(self):
+		xml_path = 'LIVRO-PUBLICADO-OU-ORGANIZADO'
+		books = self.xml_file.findall(f".//{xml_path}")
+
+		books_dict = {"authors": [], "title": [], "year": [], "edition": [], "publisher_city": [], "publisher": [], "vol": [], "pages": []}
+		for book in books:	
+			# Get data
+			authors_string = self.get_authors_string(book)
+
+			basic_data = book.find(f".//DADOS-BASICOS-DO-LIVRO")
+			title = basic_data.attrib['TITULO-DO-LIVRO']
+			year = basic_data.attrib['ANO']
+
+			details = book.find(f".//DETALHAMENTO-DO-LIVRO")
+			edition = details.attrib['NUMERO-DA-EDICAO-REVISAO']
+			publisher_city = details.attrib['CIDADE-DA-EDITORA']
+			publisher = details.attrib['NOME-DA-EDITORA']
+			vol = details.attrib['NUMERO-DE-VOLUMES']
+			pages = details.attrib['NUMERO-DE-PAGINAS']
+
+			# Add data to the dictionary
+			books_dict["authors"].append(authors_string)
+			books_dict["title"].append(title)
+			books_dict["year"].append(year)
+			books_dict["edition"].append(edition)
+			books_dict["publisher_city"].append(publisher_city)
+			books_dict["publisher"].append(publisher)
+			books_dict["vol"].append(vol)
+			books_dict["pages"].append(pages)
+
+		# Sort books by year
+		books_df = self.sort_by_key(books_dict, "year", ascending=False)
+
+		# Generate strings for each book
+		books_strings = self.get_books_strings(books_df)
+			
+		return books_strings
