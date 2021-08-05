@@ -5,7 +5,7 @@ from docx.shared import Pt
 
 
 class WordFile():
-	def __init__(self, presentation, abstract, identification, address, complete_articles, incomplete_articles, books):
+	def __init__(self, presentation, abstract, identification, address, complete_articles, incomplete_articles, books, chapters):
 		super(WordFile, self).__init__()
 		self.presentation = presentation
 		self.abstract = abstract
@@ -14,6 +14,7 @@ class WordFile():
 		self.complete_articles = complete_articles
 		self.incomplete_articles = incomplete_articles
 		self.books = books
+		self.chapters = chapters
 
 		self.document = Document()
 
@@ -25,6 +26,7 @@ class WordFile():
 		self.add_complete_articles()
 		# self.add_incomplete_articles()
 		self.add_books()
+		self.add_chapters()
 
 	def define_style(self):
 		style = self.document.styles['Normal']
@@ -93,6 +95,17 @@ class WordFile():
 		
 		for book in self.books:
 			paragraph = self.document.add_paragraph(book, style='List Bullet')
+					
+			# Format paragraph
+			paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+			paragraph_format = paragraph.paragraph_format
+			paragraph_format.line_spacing = Pt(15)
+
+	def add_chapters(self):
+		self.document.add_heading("Capítulos de livros publicados", 1) # Add "Capítulos de livros publicados" as a title
+		
+		for chapter in self.chapters:
+			paragraph = self.document.add_paragraph(chapter, style='List Bullet')
 					
 			# Format paragraph
 			paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY

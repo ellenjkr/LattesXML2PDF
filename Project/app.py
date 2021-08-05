@@ -15,6 +15,7 @@ class App():
 		self.address = self.get_address() # Get professional address
 		self.complete_articles, self.incomplete_articles = self.get_articles() # Get articles
 		self.books = self.get_books()
+		self.chapters = self.get_chapters()
 		
 	def open_file(self):
 		xml_file = ET.parse(self.resume_path) # Open file
@@ -221,3 +222,79 @@ class App():
 		books_strings = self.get_books_strings(books_df)
 			
 		return books_strings
+
+	def get_chapters_strings(self, chapters_df):
+		chapters_strings = []
+		for pos, chapter in enumerate(chapters_df["title"]):
+			chapter_string = ""
+			chapter_string += f"{chapters_df['authors'][pos]}. {chapter}. In: "
+			
+			if chapters_df['org'][pos] != "":
+				if "org" not in chapters_df['org'][pos].lower():
+					chapter_string += f"{chapters_df['org'][pos]} (Org.)."
+				else:
+					chapter_string += f" {chapters_df['org'][pos]}"
+
+			chapter_string += f" {chapters_df['book'][pos]}"
+
+			if chapters_df['edition'][pos] != "":
+				chapter_string += f" {chapters_df['edition'][pos]} ed."
+
+			chapter_string += f" {chapters_df['publisher_city'][pos]}: {chapters_df['publisher'][pos]}, {chapters_df['year'][pos]}, "
+
+			if chapters_df['vol'][pos] != "":
+				chapter_string += f"vol. {chapters_df['vol'][pos]}, "
+
+			chapter_string += f"{chapters_df['pages'][pos]}."
+			
+			chapters_strings.append(chapter_string)
+
+		return chapters_strings
+
+	def get_chapters(self):
+		xml_path = 'CAPITULO-DE-LIVRO-PUBLICADO'
+		chapters = self.xml_file.findall(f".//{xml_path}")
+
+		chapters_dict = {"authors": [], "org": [], "title": [], "year": [], "book": [], "vol": [], "edition": [], "pages": [], "publisher_city": [], "publisher": []}
+		for chapter in chapters:	
+			basic_data = chapter.find(f".//DADOS-BASICOS-DO-CAPITULO")
+			details = chapter.find(f".//DETALHAMENTO-DO-CAPITULO")
+			
+			# Get data
+			authors_string = self.get_authors_string(chapter)
+
+			title = basic_data.attrib['TITULO-DO-CAPITULO-DO-LIVRO']
+			year = basic_data.attrib['ANO']
+
+			book = details.attrib['TITULO-DO-LIVRO']
+			vol = details.attrib['NUMERO-DE-VOLUMES']
+			org = details.attrib['ORGANIZADORES']
+			pages = f"p. {details.attrib['PAGINA-INICIAL']}-{details.attrib['PAGINA-FINAL']}"
+			publisher_city = details.attrib['CIDADE-DA-EDITORA']
+			publisher = details.attrib['NOME-DA-EDITORA']
+			edition = details.attrib['NUMERO-DA-EDICAO-REVISAO']
+
+			# Add data to the dictionary
+			chapters_dict["authors"].append(authors_string)
+			chapters_dict["org"].append(org)
+			chapters_dict["title"].append(title)
+			chapters_dict["year"].append(year)
+			chapters_dict["book"].append(book)
+			chapters_dict["vol"].append(vol)
+			chapters_dict["edition"].append(edition)
+			chapters_dict["pages"].append(pages)
+			chapters_dict["publisher_city"].append(publisher_city)
+			chapters_dict["publisher"].append(publisher)
+
+		# Sort chapters by year
+		chapters_df = self.sort_by_key(chapters_dict, "year", ascending=False)
+
+		# Generate strings for each book
+		chapters_strings = self.get_chapters_strings(chapters_df)
+			
+		return chapters_strings
+
+
+
+
+		
