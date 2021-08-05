@@ -16,6 +16,7 @@ class App():
 		self.complete_articles, self.incomplete_articles = self.get_articles() # Get articles
 		self.books = self.get_books()
 		self.chapters = self.get_chapters()
+		self.journal_texts = self.get_journal_texts()
 		
 	def open_file(self):
 		xml_file = ET.parse(self.resume_path) # Open file
@@ -293,6 +294,50 @@ class App():
 		chapters_strings = self.get_chapters_strings(chapters_df)
 			
 		return chapters_strings
+
+	def get_texts_strings(self, texts_df):
+		texts_strings = []
+		for pos, text in enumerate(texts_df["title"]):
+			text_string = ""
+			text_string = f"{texts_df['authors'][pos]}. {text}. {texts_df['journal'][pos]}, {texts_df['city'][pos]}, {texts_df['pages'][pos]}, {texts_df['year'][pos]}."
+			texts_strings.append(text_string)
+
+		return texts_strings
+
+	def get_journal_texts(self):
+		xml_path = 'TEXTO-EM-JORNAL-OU-REVISTA'
+		texts = self.xml_file.findall(f".//{xml_path}")
+
+		texts_dict = {"authors": [], "title": [], "journal": [], "city": [], "pages": [], "year": []}
+		for text in texts:	
+			basic_data = text.find(f".//DADOS-BASICOS-DO-TEXTO")
+			details = text.find(f".//DETALHAMENTO-DO-TEXTO")
+			
+			# Get data
+			authors_string = self.get_authors_string(text)
+
+			title = basic_data.attrib['TITULO-DO-TEXTO']
+			
+			journal = details.attrib['TITULO-DO-JORNAL-OU-REVISTA']
+			city = details.attrib['LOCAL-DE-PUBLICACAO']
+			pages = f"p. {details.attrib['PAGINA-INICIAL']}-{details.attrib['PAGINA-FINAL']}"
+			year = details.attrib['DATA-DE-PUBLICACAO'][4:]
+
+			# Add data to the dictionary
+			texts_dict["authors"].append(authors_string)
+			texts_dict["title"].append(title)
+			texts_dict["journal"].append(journal)
+			texts_dict["city"].append(city)
+			texts_dict["pages"].append(pages)
+			texts_dict["year"].append(year)
+			
+		# Sort texts by year
+		texts_df = self.sort_by_key(texts_dict, "year", ascending=False)
+
+		# Generate strings for each book
+		texts_strings = self.get_texts_strings(texts_df)
+			
+		return texts_strings
 
 
 
