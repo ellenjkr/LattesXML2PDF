@@ -9,14 +9,15 @@ class App():
 		
 		self.xml_file = self.open_file()
 		
-		self.abstract = self.get_abstract() # Get author abstract
-		self.presentation = self.get_presentation() # Get author presentation
-		self.identification = self.get_identification() # Get author identification
-		self.address = self.get_address() # Get professional address
-		self.complete_articles, self.incomplete_articles = self.get_articles() # Get articles
+		self.abstract = self.get_abstract()
+		self.presentation = self.get_presentation()
+		self.identification = self.get_identification()
+		self.address = self.get_address()
+		self.complete_articles, self.incomplete_articles = self.get_articles()
 		self.books = self.get_books()
 		self.chapters = self.get_chapters()
 		self.journal_texts = self.get_journal_texts()
+		self.complete_congress_works, self.incomplete_congress_works = self.get_congress_works()
 		
 	def open_file(self):
 		xml_file = ET.parse(self.resume_path) # Open file
@@ -339,7 +340,63 @@ class App():
 			
 		return texts_strings
 
+	def get_congress_works_strings(self, works_df):
+		complete_works_strings = []
+		incomplete_works_strings = []
 
+		for pos, work in enumerate(works_df["title"]):
+			work_string = ""
+			work_string += f"{works_df['authors'][pos]}. {works_df['title'][pos]}. In: {works_df['congress'][pos]}, {works_df['year'][pos]}, {works_df['congress_city'][pos]}. {works_df['proceedings'][pos]}. {works_df['publisher_city'][pos]}: {works_df['publisher'][pos]}, {works_df['year'][pos]}. {works_df['pages'][pos]}"
 
+			if works_df["nature"][pos] == 'COMPLETO':
+				complete_works_strings.append(work_string)
+			else:
+				incomplete_works_strings.append(work_string)
 
+		return (complete_works_strings, incomplete_works_strings)
+
+	def get_congress_works(self):
+		# Find the works
+		xml_path = 'TRABALHO-EM-EVENTOS'
+		works = self.xml_file.findall(f".//{xml_path}")
+
+		# Define works dictionary
+		works_dict = {"nature": [], "authors": [], "title": [], "congress": [], "year": [], "congress_city": [], "proceedings": [], "publisher_city": [], "publisher": [], "pages": []}
+
+		for work in works:
+			# Get the data
+			authors_string = self.get_authors_string(work)
+
+			work_basic_data = work.find(f".//DADOS-BASICOS-DO-TRABALHO")
+			title = work_basic_data.attrib['TITULO-DO-TRABALHO']
+			nature = work_basic_data.attrib['NATUREZA']
+
+			work_details = work.find(f".//DETALHAMENTO-DO-TRABALHO")
+			congress = work_details.attrib['NOME-DO-EVENTO']
+			year = work_details.attrib['ANO-DE-REALIZACAO']
+			congress_city = work_details.attrib['CIDADE-DO-EVENTO']
+			proceedings = work_details.attrib['TITULO-DOS-ANAIS-OU-PROCEEDINGS']
+			publisher_city = work_details.attrib['CIDADE-DA-EDITORA']
+			publisher = work_details.attrib['NOME-DA-EDITORA']
+			pages = f"p. {work_details.attrib['PAGINA-INICIAL']}-{work_details.attrib['PAGINA-FINAL']}"
+
+			# Add data to the dictionary
+			works_dict["nature"].append(nature)
+			works_dict["authors"].append(authors_string)
+			works_dict["title"].append(title)
+			works_dict["congress"].append(congress)
+			works_dict["year"].append(year)
+			works_dict["congress_city"].append(congress_city)
+			works_dict["proceedings"].append(proceedings)
+			works_dict["publisher_city"].append(publisher_city)
+			works_dict["publisher"].append(publisher)
+			works_dict["pages"].append(pages)
+
+		# Sort works by year
+		works_df = self.sort_by_key(works_dict, "year", ascending=False)
 		
+		# Generate strings for each work
+		complete_works_strings, incomplete_works_strings = self.get_congress_works_strings(works_df)
+
+		return (complete_works_strings, incomplete_works_strings)
+	

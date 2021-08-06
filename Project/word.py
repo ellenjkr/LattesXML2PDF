@@ -5,7 +5,7 @@ from docx.shared import Pt
 
 
 class WordFile():
-	def __init__(self, presentation, abstract, identification, address, complete_articles, incomplete_articles, books, chapters, journal_texts):
+	def __init__(self, presentation, abstract, identification, address, complete_articles, incomplete_articles, books, chapters, journal_texts, complete_congress_works, incomplete_congress_works):
 		super(WordFile, self).__init__()
 		self.presentation = presentation
 		self.abstract = abstract
@@ -16,6 +16,8 @@ class WordFile():
 		self.books = books
 		self.chapters = chapters
 		self.journal_texts = journal_texts
+		self.complete_congress_works = complete_congress_works
+		self.incomplete_congress_works = incomplete_congress_works
 
 		self.document = Document()
 
@@ -29,6 +31,8 @@ class WordFile():
 		self.add_books()
 		self.add_chapters()
 		self.add_journal_texts()
+		self.add_complete_congress_works()
+		# self.add_incomplete_congress_works()
 
 	def define_style(self):
 		style = self.document.styles['Normal']
@@ -120,6 +124,17 @@ class WordFile():
 		for text in self.journal_texts:
 			paragraph = self.document.add_paragraph(text, style='List Bullet')
 					
+			# Format paragraph
+			paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+			paragraph_format = paragraph.paragraph_format
+			paragraph_format.line_spacing = Pt(15)
+
+	def add_complete_congress_works(self):
+		self.document.add_heading("Trabalhos completos publicados em anais de congressos", 1) # Add "Trabalhos completos publicados em anais de congressos" as a title
+		
+		for work in self.complete_congress_works:
+			paragraph = self.document.add_paragraph(work, style='List Bullet')
+			
 			# Format paragraph
 			paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
 			paragraph_format = paragraph.paragraph_format
