@@ -5,19 +5,13 @@ from docx.shared import Pt
 
 
 class WordFile():
-	def __init__(self, presentation, abstract, identification, address, complete_articles, incomplete_articles, books, chapters, journal_texts, complete_congress_works, incomplete_congress_works):
+	def __init__(self, presentation, abstract, identification, address, publications_dict):
 		super(WordFile, self).__init__()
 		self.presentation = presentation
 		self.abstract = abstract
 		self.identification = identification
 		self.address = address
-		self.complete_articles = complete_articles
-		self.incomplete_articles = incomplete_articles
-		self.books = books
-		self.chapters = chapters
-		self.journal_texts = journal_texts
-		self.complete_congress_works = complete_congress_works
-		self.incomplete_congress_works = incomplete_congress_works
+		self.publications_dict = publications_dict
 
 		self.document = Document()
 
@@ -26,13 +20,14 @@ class WordFile():
 		self.add_abstract()
 		self.add_identification()
 		self.add_address()
-		self.add_complete_articles()
-		# self.add_incomplete_articles()
-		self.add_books()
-		self.add_chapters()
-		self.add_journal_texts()
-		self.add_complete_congress_works()
-		# self.add_incomplete_congress_works()
+		self.add_publications()
+		# self.add_complete_articles()
+		# # self.add_incomplete_articles()
+		# self.add_books()
+		# self.add_chapters()
+		# self.add_journal_texts()
+		# self.add_complete_congress_works()
+		# # self.add_incomplete_congress_works()
 
 	def define_style(self):
 		style = self.document.styles['Normal']
@@ -85,6 +80,18 @@ class WordFile():
 		    row_cells = table.add_row().cells
 		    row_cells[1].text = value
 
+	def add_publications(self):
+		for key, publication_type in self.publications_dict.items():
+			self.document.add_heading(key, 1) # Add the key as a title
+		
+			for publication in publication_type:
+				paragraph = self.document.add_paragraph(publication, style='List Bullet')
+				
+				# Format paragraph
+				paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+				paragraph_format = paragraph.paragraph_format
+				paragraph_format.line_spacing = Pt(15)
+
 	def add_complete_articles(self):
 		self.document.add_heading("Artigos completos publicados em periódicos", 1) # Add "Artigos publicados em periódicos" as a title
 		
@@ -107,38 +114,38 @@ class WordFile():
 			paragraph_format = paragraph.paragraph_format
 			paragraph_format.line_spacing = Pt(15)
 
-	def add_chapters(self):
-		self.document.add_heading("Capítulos de livros publicados", 1) # Add "Capítulos de livros publicados" as a title
+	# def add_chapters(self):
+	# 	self.document.add_heading("Capítulos de livros publicados", 1) # Add "Capítulos de livros publicados" as a title
 		
-		for chapter in self.chapters:
-			paragraph = self.document.add_paragraph(chapter, style='List Bullet')
+	# 	for chapter in self.chapters:
+	# 		paragraph = self.document.add_paragraph(chapter, style='List Bullet')
 					
-			# Format paragraph
-			paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-			paragraph_format = paragraph.paragraph_format
-			paragraph_format.line_spacing = Pt(15)
+	# 		# Format paragraph
+	# 		paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+	# 		paragraph_format = paragraph.paragraph_format
+	# 		paragraph_format.line_spacing = Pt(15)
 
-	def add_journal_texts(self):
-		self.document.add_heading("Textos em jornais de notícias/revistas", 1) # Add "Textos em jornais de notícias/revistas" as a title
+	# def add_journal_texts(self):
+	# 	self.document.add_heading("Textos em jornais de notícias/revistas", 1) # Add "Textos em jornais de notícias/revistas" as a title
 		
-		for text in self.journal_texts:
-			paragraph = self.document.add_paragraph(text, style='List Bullet')
+	# 	for text in self.journal_texts:
+	# 		paragraph = self.document.add_paragraph(text, style='List Bullet')
 					
-			# Format paragraph
-			paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-			paragraph_format = paragraph.paragraph_format
-			paragraph_format.line_spacing = Pt(15)
+	# 		# Format paragraph
+	# 		paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+	# 		paragraph_format = paragraph.paragraph_format
+	# 		paragraph_format.line_spacing = Pt(15)
 
-	def add_complete_congress_works(self):
-		self.document.add_heading("Trabalhos completos publicados em anais de congressos", 1) # Add "Trabalhos completos publicados em anais de congressos" as a title
+	# def add_complete_congress_works(self):
+	# 	self.document.add_heading("Trabalhos completos publicados em anais de congressos", 1) # Add "Trabalhos completos publicados em anais de congressos" as a title
 		
-		for work in self.complete_congress_works:
-			paragraph = self.document.add_paragraph(work, style='List Bullet')
+	# 	for work in self.complete_congress_works:
+	# 		paragraph = self.document.add_paragraph(work, style='List Bullet')
 			
-			# Format paragraph
-			paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-			paragraph_format = paragraph.paragraph_format
-			paragraph_format.line_spacing = Pt(15)
+	# 		# Format paragraph
+	# 		paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+	# 		paragraph_format = paragraph.paragraph_format
+	# 		paragraph_format.line_spacing = Pt(15)
 
 	def save_document(self, document_name):
 		self.document.save(f'{document_name}.docx')
