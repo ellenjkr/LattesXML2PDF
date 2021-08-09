@@ -1,7 +1,7 @@
 from docx import Document
-from docx.text.paragraph import Paragraph
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Pt
+from docx.shared import RGBColor
 
 
 class WordFile():
@@ -21,12 +21,7 @@ class WordFile():
 		self.add_identification()
 		self.add_address()
 		self.add_publications()
-		# self.add_complete_articles()
 		# # self.add_incomplete_articles()
-		# self.add_books()
-		# self.add_chapters()
-		# self.add_journal_texts()
-		# self.add_complete_congress_works()
 		# # self.add_incomplete_congress_works()
 
 	def define_style(self):
@@ -63,9 +58,9 @@ class WordFile():
 		table = self.document.add_table(rows=0, cols=2)
 
 		for key, value in self.identification.items():
-		    row_cells = table.add_row().cells
-		    row_cells[0].text = key
-		    row_cells[1].text = value
+			row_cells = table.add_row().cells
+			row_cells[0].text = key
+			row_cells[1].text = value
 
 	def add_address(self):
 		self.document.add_heading("Endereço", 1) # Add "Endereço" as a title
@@ -77,75 +72,28 @@ class WordFile():
 		row_cells[1].text = self.address[0]
 		
 		for value in self.address[1:]:
-		    row_cells = table.add_row().cells
-		    row_cells[1].text = value
+			row_cells = table.add_row().cells
+			row_cells[1].text = value
 
 	def add_publications(self):
 		for key, publication_type in self.publications_dict.items():
 			self.document.add_heading(key, 1) # Add the key as a title
-		
-			for publication in publication_type:
-				paragraph = self.document.add_paragraph(publication, style='List Bullet')
+
+			table = self.document.add_table(rows=0, cols=2) # Create table
+
+			for pos, publication in enumerate(publication_type):
+				row_cells = table.add_row().cells # Get cells from row
+				row_cells[0].width = 5 # Make the first cell smaller
+				paragraph = row_cells[0].paragraphs[0] # Get the paragraph
+				paragraph.add_run(str(pos + 1)).bold = True # Add a number for each publication and make it bold
+				run = paragraph.runs[0]
+				font = run.font
+				font.color.rgb = RGBColor.from_string('0b306b')
 				
-				# Format paragraph
-				paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-				paragraph_format = paragraph.paragraph_format
-				paragraph_format.line_spacing = Pt(15)
-
-	def add_complete_articles(self):
-		self.document.add_heading("Artigos completos publicados em periódicos", 1) # Add "Artigos publicados em periódicos" as a title
-		
-		for article in self.complete_articles:
-			paragraph = self.document.add_paragraph(article, style='List Bullet')
-			
-			# Format paragraph
-			paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-			paragraph_format = paragraph.paragraph_format
-			paragraph_format.line_spacing = Pt(15)
-
-	def add_books(self):
-		self.document.add_heading("Livros publicados/organizados ou edições", 1) # Add "Livros publicados/organizados ou edições" as a title
-		
-		for book in self.books:
-			paragraph = self.document.add_paragraph(book, style='List Bullet')
-					
-			# Format paragraph
-			paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-			paragraph_format = paragraph.paragraph_format
-			paragraph_format.line_spacing = Pt(15)
-
-	# def add_chapters(self):
-	# 	self.document.add_heading("Capítulos de livros publicados", 1) # Add "Capítulos de livros publicados" as a title
-		
-	# 	for chapter in self.chapters:
-	# 		paragraph = self.document.add_paragraph(chapter, style='List Bullet')
-					
-	# 		# Format paragraph
-	# 		paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-	# 		paragraph_format = paragraph.paragraph_format
-	# 		paragraph_format.line_spacing = Pt(15)
-
-	# def add_journal_texts(self):
-	# 	self.document.add_heading("Textos em jornais de notícias/revistas", 1) # Add "Textos em jornais de notícias/revistas" as a title
-		
-	# 	for text in self.journal_texts:
-	# 		paragraph = self.document.add_paragraph(text, style='List Bullet')
-					
-	# 		# Format paragraph
-	# 		paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-	# 		paragraph_format = paragraph.paragraph_format
-	# 		paragraph_format.line_spacing = Pt(15)
-
-	# def add_complete_congress_works(self):
-	# 	self.document.add_heading("Trabalhos completos publicados em anais de congressos", 1) # Add "Trabalhos completos publicados em anais de congressos" as a title
-		
-	# 	for work in self.complete_congress_works:
-	# 		paragraph = self.document.add_paragraph(work, style='List Bullet')
-			
-	# 		# Format paragraph
-	# 		paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-	# 		paragraph_format = paragraph.paragraph_format
-	# 		paragraph_format.line_spacing = Pt(15)
+				row_cells[1].width = Pt(500) # Make the second cell bigger
+				paragraph = row_cells[1].paragraphs[0] # Get the cell paragraph
+				paragraph.text = publication # Add the publication to the paragraph
+				paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
 
 	def save_document(self, document_name):
 		self.document.save(f'{document_name}.docx')
