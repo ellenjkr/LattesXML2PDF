@@ -9,15 +9,18 @@ class Publications():
 		self.publications_dict = {}
 
 		self.complete_articles, self.incomplete_articles = self.get_articles()
-		self.complete_congress_works, self.incomplete_congress_works = self.get_congress_works()
+		self.complete_congress_works, self.congress_expanded_abstracts, self.congress_abstracts = self.get_congress_works()
 
 		self.publications_dict["Artigos completos publicados em periódicos"] = self.complete_articles
-		# self.publications_dict.append(self.incomplete_articles)
+		# self.publications_dict.append(self.incomplete_a¹rticles)
 		self.publications_dict["Livros publicados/organizados ou edições"] = self.get_books()
 		self.publications_dict["Capítulos de livros publicados"] = self.get_chapters()
 		self.publications_dict["Textos em jornais de notícias/revistas"] = self.get_journal_texts()
 		self.publications_dict["Trabalhos completos publicados em anais de congressos"] = self.complete_congress_works
-		# self.publications_dict.append(self.incomplete_congress_works)
+		self.publications_dict["Resumos expandidos publicados em anais de congressos"] = self.congress_expanded_abstracts
+		self.publications_dict["Resumos publicados em anais de congressos"] = self.congress_abstracts
+		self.publications_dict["Apresentações de Trabalho"] = self.get_work_presentations()
+		self.publications_dict["Outras produções bibliográficas"] = self.get_other_publications()
 
 	def get_authors_string(self, xml_child):
 		authors_string = ""
@@ -252,8 +255,9 @@ class Publications():
 		return texts_strings
 
 	def get_congress_works_strings(self, works_df):
-		complete_works_strings = []
-		incomplete_works_strings = []
+		complete_works_strings = [] # Trabalhos completos
+		expanded_abstracts_strings = [] # Resumos expandidos
+		congress_abstracts = [] # Resumos
 
 		for pos, work in enumerate(works_df["title"]):
 			work_string = ""
@@ -261,10 +265,12 @@ class Publications():
 
 			if works_df["nature"][pos] == 'COMPLETO':
 				complete_works_strings.append(work_string)
+			elif works_df["nature"][pos] == 'RESUMO_EXPANDIDO':
+				expanded_abstracts_strings.append(work_string)
 			else:
-				incomplete_works_strings.append(work_string)
+				congress_abstracts.append(work_string)
 
-		return (complete_works_strings, incomplete_works_strings)
+		return (complete_works_strings, expanded_abstracts_strings, congress_abstracts)
 
 	def get_congress_works(self):
 		# Find the works
@@ -307,6 +313,93 @@ class Publications():
 		works_df = self.sort_by_key(works_dict, "year", ascending=False)
 		
 		# Generate strings for each work
-		complete_works_strings, incomplete_works_strings = self.get_congress_works_strings(works_df)
+		complete_works_strings, expanded_abstracts_strings, abstract_strings = self.get_congress_works_strings(works_df)
 
-		return (complete_works_strings, incomplete_works_strings)
+		return (complete_works_strings, expanded_abstracts_strings, abstract_strings)
+
+	def get_presentations_strings(self, presentations_df):
+		presentations_strings = []
+		for pos, presentation in enumerate(presentations_df["title"]):
+			presentation_string = ""
+			presentation_string = f"{presentations_df['authors'][pos]}. {presentation}. {presentations_df['year'][pos]}. {presentations_df['nature'][pos]}"
+
+			presentations_strings.append(presentation_string)
+
+		return presentations_strings
+
+	def get_work_presentations(self):
+		xml_path = 'APRESENTACAO-DE-TRABALHO'
+		presentations = self.xml_file.findall(f".//{xml_path}")
+
+		presentations_dict = {"authors": [], "title": [], "year": [], "nature": []}
+		for presentation in presentations:	
+			# Get data
+			authors_string = self.get_authors_string(presentation)
+
+			basic_data = presentation.find(f".//DADOS-BASICOS-DA-APRESENTACAO-DE-TRABALHO")
+			title = basic_data.attrib['TITULO']
+			year = basic_data.attrib['ANO']
+			nature = basic_data.attrib['NATUREZA']
+		
+			# Add data to the dictionary
+			presentations_dict["authors"].append(authors_string)
+			presentations_dict["title"].append(title)
+			presentations_dict["year"].append(year)
+
+			# Different types of nature
+			if nature == "CONGRESSO":
+				presentations_dict["nature"].append(f"(Apresentação de Trabalho/Congresso)")
+			else:
+				presentations_dict["nature"].append(f"(Apresentação de Trabalho/Conferência ou palestra)")
+			
+		# Sort presentations by year
+		presentations_df = self.sort_by_key(presentations_dict, "year", ascending=False)
+
+		# Generate strings for each presentation
+		presentations_strings = self.get_presentations_strings(presentations_df)
+			
+		return presentations_strings
+
+	def get_other_publications_strings(self, other_publications_df):
+		other_publications_strings = []
+		for pos, other_publication in enumerate(other_publications_df["title"]):
+			other_publication_string = ""
+			other_publication_string = f"{other_publications_df['authors'][pos]}. {other_publication}. {other_publications_df['publisher_city'][pos]}: {other_publications_df['publisher'][pos]}, {other_publications_df['year'][pos]} {other_publications_df['nature'][pos]}."
+
+			other_publications_strings.append(other_publication_string)
+
+		return other_publications_strings
+
+	def get_other_publications(self):
+		xml_path = 'OUTRA-PRODUCAO-BIBLIOGRAFICA'
+		other_publications = self.xml_file.findall(f".//{xml_path}")
+
+		other_publications_dict = {"authors": [], "title": [], "year": [], "nature": [], "publisher": [], "publisher_city": []}
+		for other_publication in other_publications:	
+			# Get data
+			authors_string = self.get_authors_string(other_publication)
+
+			basic_data = other_publication.find(f".//DADOS-BASICOS-DE-OUTRA-PRODUCAO")
+			title = basic_data.attrib['TITULO']
+			year = basic_data.attrib['ANO']
+			nature = basic_data.attrib['NATUREZA']
+
+			details = other_publication.find(f".//DETALHAMENTO-DE-OUTRA-PRODUCAO")
+			publisher = details.attrib["EDITORA"]
+			publisher_city = details.attrib["CIDADE-DA-EDITORA"]
+
+			# Add data to the dictionary
+			other_publications_dict["authors"].append(authors_string)
+			other_publications_dict["title"].append(title)
+			other_publications_dict["year"].append(year)
+			other_publications_dict["nature"].append(f"({nature})")
+			other_publications_dict["publisher"].append(publisher)
+			other_publications_dict["publisher_city"].append(publisher_city)
+			
+		# Sort other_publications by year
+		other_publications_df = self.sort_by_key(other_publications_dict, "year", ascending=False)
+
+		# Generate strings for each other_publication
+		other_publications_strings = self.get_other_publications_strings(other_publications_df)
+			
+		return other_publications_strings
