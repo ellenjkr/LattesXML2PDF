@@ -1,9 +1,9 @@
 import pandas as pd
 
 
-class Publications():
+class Bibliographic_Productions():
 	def __init__(self, xml_file):
-		super(Publications, self).__init__()
+		super(Bibliographic_Productions, self).__init__()
 		self.xml_file = xml_file
 		
 		self.publications_dict = {}

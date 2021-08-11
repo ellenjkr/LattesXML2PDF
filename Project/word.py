@@ -5,13 +5,14 @@ from docx.shared import RGBColor
 
 
 class WordFile():
-	def __init__(self, presentation, abstract, identification, address, publications_dict):
+	def __init__(self, presentation, abstract, identification, address, bibliographic_productions_dict, technical_productions_dict):
 		super(WordFile, self).__init__()
 		self.presentation = presentation
 		self.abstract = abstract
 		self.identification = identification
 		self.address = address
-		self.publications_dict = publications_dict
+		self.bibliographic_productions_dict = bibliographic_productions_dict
+		self.technical_productions_dict = technical_productions_dict
 
 		self.document = Document()
 
@@ -20,9 +21,10 @@ class WordFile():
 		self.add_abstract()
 		self.add_identification()
 		self.add_address()
-		self.add_publications()
+		self.add_productions(self.bibliographic_productions_dict)
+		self.add_productions(self.technical_productions_dict)
+		
 		# # self.add_incomplete_articles()
-		# # self.add_incomplete_congress_works()
 
 	def define_style(self):
 		style = self.document.styles['Normal']
@@ -75,8 +77,8 @@ class WordFile():
 			row_cells = table.add_row().cells
 			row_cells[1].text = value
 
-	def add_publications(self):
-		for key, publication_type in self.publications_dict.items():
+	def add_productions(self, productions_dict):
+		for key, publication_type in productions_dict.items():
 			self.document.add_heading(key, 1) # Add the key as a title
 
 			table = self.document.add_table(rows=0, cols=2) # Create table

@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
-from publications import Publications
+from bibliographic_productions import Bibliographic_Productions
+from technical_productions import Technical_Productions
 
 
 class Resume():
@@ -14,8 +15,11 @@ class Resume():
 		self.identification = self.get_identification()
 		self.address = self.get_address()
 
-		self.publications = Publications(self.xml_file)
-		self.publications_dict = self.publications.publications_dict
+		self.bibliographic_productions = Bibliographic_Productions(self.xml_file)
+		self.bibliographic_productions_dict = self.bibliographic_productions.publications_dict
+
+		self.technical_productions = Technical_Productions(self.xml_file)
+		self.technical_productions_dict = self.technical_productions.publications_dict
 		
 	def open_file(self):
 		xml_file = ET.parse(self.resume_path) # Open file
