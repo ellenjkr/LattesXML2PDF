@@ -13,6 +13,7 @@ class Technical_Productions():
 		self.publications_dict["Programas de computador sem registro"] = self.get_not_registered_softwares() # Softwares without register
 		self.publications_dict["Produtos tecnológicos"] = self.get_tech_products()
 		self.publications_dict["Trabalhos técnicos"] = other_technical_works
+		self.publications_dict["Entrevistas, mesas redondas, programas e comentários na mídia"] = self.get_other_productions()
 
 	def get_authors_string(self, xml_child):
 		authors_string = ""
@@ -46,33 +47,33 @@ class Technical_Productions():
 		return (advice_and_consultancy, other_technical_works)
 
 	def get_technical_works(self):
-		# Find the productions
+		# Find the works
 		xml_path = 'TRABALHO-TECNICO'
-		productions = self.xml_file.findall(f".//{xml_path}")
+		works = self.xml_file.findall(f".//{xml_path}")
 
-		# Define productions dictionary
-		productions_dict = {"authors": [], "title": [], "year": [], "nature": []}
+		# Define works dictionary
+		works_dict = {"authors": [], "title": [], "year": [], "nature": []}
 
-		for production in productions:
+		for work in works:
 			# Get the data
-			authors_string = self.get_authors_string(production)
+			authors_string = self.get_authors_string(work)
 
-			basic_data = production.find(f".//DADOS-BASICOS-DO-TRABALHO-TECNICO")
+			basic_data = work.find(f".//DADOS-BASICOS-DO-TRABALHO-TECNICO")
 			title = basic_data.attrib['TITULO-DO-TRABALHO-TECNICO']
 			year = int(basic_data.attrib['ANO'])
 			nature = basic_data.attrib['NATUREZA']
 
 			# Add data to the dictionary
-			productions_dict["authors"].append(authors_string)
-			productions_dict["title"].append(title)
-			productions_dict["year"].append(year)
-			productions_dict["nature"].append(nature)
+			works_dict["authors"].append(authors_string)
+			works_dict["title"].append(title)
+			works_dict["year"].append(year)
+			works_dict["nature"].append(nature)
 
-		# Sort productions by year
-		productions_df = self.sort_by_key(productions_dict, "year", ascending=False)
+		# Sort works by year
+		works_df = self.sort_by_key(works_dict, "year", ascending=False)
 		
-		# Generate strings for each production
-		advice_and_consultancy, other_technical_works = self.get_technical_works_strings(productions_df)
+		# Generate strings for each work
+		advice_and_consultancy, other_technical_works = self.get_technical_works_strings(works_df)
 
 		return advice_and_consultancy, other_technical_works
 
@@ -88,7 +89,7 @@ class Technical_Productions():
 		return softwares_strings
 
 	def get_not_registered_softwares(self):
-		# Find the productions
+		# Find the softwares
 		xml_path = 'SOFTWARE'
 		softwares = self.xml_file.findall(f".//{xml_path}")
 
@@ -158,3 +159,47 @@ class Technical_Productions():
 		tech_products_strings = self.get_tech_products_strings(tech_products_df)
 
 		return tech_products_strings
+
+	def get_other_productions_strings(self, productions_df):
+		productions_strings = []
+
+		for pos, production in enumerate(productions_df["title"]):
+			production_string = ""
+			production_string += f"{productions_df['authors'][pos]}. {production}. {productions_df['year'][pos]}."
+
+			if productions_df['nature'][pos] == "MESA_REDONDA":
+				production_string += " (Programa de rádio ou TV/Mesa redonda)."
+			productions_strings.append(production_string)
+
+		return productions_strings
+
+	def get_other_productions(self):
+		# Find the productions
+		xml_path = 'PROGRAMA-DE-RADIO-OU-TV' # Implements only for radio and tv
+		productions = self.xml_file.findall(f".//{xml_path}")
+
+		# Define productions dictionary
+		productions_dict = {"authors": [], "title": [], "year": [], "nature": []}
+
+		for production in productions:
+			# Get the data
+			authors_string = self.get_authors_string(production)
+
+			basic_data = production.find(f".//DADOS-BASICOS-DO-PROGRAMA-DE-RADIO-OU-TV")
+			title = basic_data.attrib['TITULO']
+			year = int(basic_data.attrib['ANO'])
+			nature = basic_data.attrib['NATUREZA']
+
+			# Add data to the dictionary
+			productions_dict["authors"].append(authors_string)
+			productions_dict["title"].append(title)
+			productions_dict["year"].append(year)
+			productions_dict["nature"].append(nature)
+
+		# Sort productions by year
+		productions_df = self.sort_by_key(productions_dict, "year", ascending=False)
+		
+		# Generate strings for each production
+		productions_strings = self.get_other_productions_strings(productions_df)
+
+		return productions_strings
