@@ -11,6 +11,7 @@ class Technical_Productions():
 		advice_and_consultancy, other_technical_works = self.get_technical_works()
 		self.publications_dict["Assessoria e consultoria"] = advice_and_consultancy
 		self.publications_dict["Programas de computador sem registro"] = self.get_not_registered_softwares() # Softwares without register
+		self.publications_dict["Produtos tecnológicos"] = self.get_tech_products()
 		self.publications_dict["Trabalhos técnicos"] = other_technical_works
 
 	def get_authors_string(self, xml_child):
@@ -117,3 +118,43 @@ class Technical_Productions():
 		softwares_strings = self.get_softwares_strings(softwares_df)
 
 		return softwares_strings
+
+	def get_tech_products_strings(self, tech_products_df):
+		tech_products_strings = []
+
+		for pos, tech_product in enumerate(tech_products_df["title"]):
+			tech_product_string = ""
+			tech_product_string += f"{tech_products_df['authors'][pos]}. {tech_product}. {tech_products_df['year'][pos]}."
+
+			tech_products_strings.append(tech_product_string)
+
+		return tech_products_strings
+
+	def get_tech_products(self):
+		# Find the productions
+		xml_path = 'PRODUTO-TECNOLOGICO'
+		tech_products = self.xml_file.findall(f".//{xml_path}")
+
+		# Define tech_products dictionary
+		tech_products_dict = {"authors": [], "title": [], "year": []}
+
+		for tech_product in tech_products:
+			# Get the data
+			authors_string = self.get_authors_string(tech_product)
+
+			basic_data = tech_product.find(f".//DADOS-BASICOS-DO-PRODUTO-TECNOLOGICO")
+			title = basic_data.attrib['TITULO-DO-PRODUTO']
+			year = int(basic_data.attrib['ANO'])
+
+			# Add data to the dictionary
+			tech_products_dict["authors"].append(authors_string)
+			tech_products_dict["title"].append(title)
+			tech_products_dict["year"].append(year)
+
+		# Sort tech_products by year
+		tech_products_df = self.sort_by_key(tech_products_dict, "year", ascending=False)
+		
+		# Generate strings for each tech_product
+		tech_products_strings = self.get_tech_products_strings(tech_products_df)
+
+		return tech_products_strings
