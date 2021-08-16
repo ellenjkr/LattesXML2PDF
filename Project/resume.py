@@ -21,6 +21,8 @@ class Resume():
 		self.technical_productions = Technical_Productions(self.xml_file)
 		self.technical_productions_dict = self.technical_productions.publications_dict
 		
+		self.lines_of_research = self.get_lines_of_research()
+
 	def open_file(self):
 		xml_file = ET.parse(self.resume_path) # Open file
 		xml_file = xml_file.getroot()
@@ -110,5 +112,33 @@ class Resume():
 
 		return address
 
+	def get_lines_of_research(self):
+		# Find the tag
+		xml_path = 'LINHA-DE-PESQUISA'
+		researches = self.xml_file.findall(f".//{xml_path}")
+
+		info = {'title': [], 'goals': [], 'key_words': []}
+
+		for research in researches:
+			title = research.attrib['TITULO-DA-LINHA-DE-PESQUISA']
+			goals = research.attrib['OBJETIVOS-LINHA-DE-PESQUISA']
+			
+			keywords_xml_path = 'PALAVRAS-CHAVE'
+			keywords = research.find(f".//{keywords_xml_path}") # Get keywords
+			if keywords != None and keywords != []: # Check if the line of research has keywords
+				keywords_string = "Palavras-chave: "
+				for key in keywords.attrib.keys(): # For each key
+					if keywords.attrib[key] != "": # Check if it is empty
+						keywords_string += f"{keywords.attrib[key]}; " # Add the keyword to the string
+
+				keywords_string = keywords_string[: -2] # Remove the ", " after the last keyword
+				keywords_string += '.' # Add a "." after the last keyword
 	
-	
+			else:
+				keywords_string = ""
+			
+			info['title'].append(title)
+			info['goals'].append(f"Objetivo: {goals}")
+			info['key_words'].append(keywords_string)
+
+		return info

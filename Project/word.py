@@ -5,7 +5,7 @@ from docx.shared import RGBColor
 
 
 class WordFile():
-	def __init__(self, presentation, abstract, identification, address, bibliographic_productions_dict, technical_productions_dict):
+	def __init__(self, presentation, abstract, identification, address, bibliographic_productions_dict, technical_productions_dict, lines_of_research):
 		super(WordFile, self).__init__()
 		self.presentation = presentation
 		self.abstract = abstract
@@ -13,6 +13,7 @@ class WordFile():
 		self.address = address
 		self.bibliographic_productions_dict = bibliographic_productions_dict
 		self.technical_productions_dict = technical_productions_dict
+		self.lines_of_research = lines_of_research
 
 		self.document = Document()
 
@@ -25,7 +26,9 @@ class WordFile():
 		self.document.add_heading("Produções", 0) # Add a section
 		self.add_productions(self.bibliographic_productions_dict, "Produção bibliográfica")
 		self.add_productions(self.technical_productions_dict, "Produção técnica")
-		
+		self.document.add_heading("Linhas de pesquisa", 0) # Add a section
+		self.add_lines_of_research()
+
 		# # self.add_incomplete_articles()
 
 	def define_style(self):
@@ -135,6 +138,30 @@ class WordFile():
 				paragraph = row_cells[1].paragraphs[0] # Get the cell paragraph
 				paragraph.text = publication # Add the publication to the paragraph
 				paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
+
+	def add_lines_of_research(self):
+		table = self.document.add_table(rows=0, cols=2) # Create table
+		for pos, research in enumerate(self.lines_of_research['title']):
+			row_cells = table.add_row().cells # Get cells from row
+			row_cells[0].width = 5 # Make the first cell smaller
+			paragraph = row_cells[0].paragraphs[0] # Get the paragraph
+			paragraph.add_run(str(pos + 1)).bold = True # Add a number for each research and make it bold
+			run = paragraph.runs[0]
+			font = run.font
+			font.color.rgb = RGBColor.from_string('0b306b')
+			
+			row_cells[1].width = Pt(500) # Make the second cell bigger
+
+			title_paragraph = row_cells[1].paragraphs[0] # Get the cell first paragraph
+			title_paragraph.text = research # Add the title to the first paragraph
+
+			goals_paragraph = row_cells[1].add_paragraph() # Add a second paragraph
+			goals_paragraph.text = self.lines_of_research['goals'][pos] # Add the goals to the paragraph
+			goals_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
+
+			if self.lines_of_research['key_words'][pos] != "": # If it has keywords
+				keywords_paragraph = row_cells[1].add_paragraph() # Add a second paragraph
+				keywords_paragraph.text = self.lines_of_research['key_words'][pos] # Add the title to the first paragraph
 
 	def save_document(self, document_name):
 		self.document.save(f'{document_name}.docx')
