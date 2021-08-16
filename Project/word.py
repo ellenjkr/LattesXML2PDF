@@ -17,12 +17,14 @@ class WordFile():
 		self.document = Document()
 
 		self.define_style()
+		self.document.add_heading("Apresentação", 0) # Add a section
 		self.add_presentation()
 		self.add_abstract()
 		self.add_identification()
 		self.add_address()
-		self.add_productions(self.bibliographic_productions_dict)
-		self.add_productions(self.technical_productions_dict)
+		self.document.add_heading("Produções", 0) # Add a section
+		self.add_productions(self.bibliographic_productions_dict, "Produção bibliográfica")
+		self.add_productions(self.technical_productions_dict, "Produção técnica")
 		
 		# # self.add_incomplete_articles()
 
@@ -77,7 +79,44 @@ class WordFile():
 			row_cells = table.add_row().cells
 			row_cells[1].text = value
 
-	def add_productions(self, productions_dict):
+	def set_cell_background(self, cell, fill, color=None, val=None):
+	    from docx.oxml.shared import qn  # feel free to move these out
+	    from docx.oxml.xmlchemy import OxmlElement
+
+	    cell_properties = cell._element.tcPr
+	    try:
+	        cell_shading = cell_properties.xpath('w:shd')[0]  # in case there's already shading
+	    except IndexError:
+	        cell_shading = OxmlElement('w:shd') # add new w:shd element to it
+	    if fill:
+	        cell_shading.set(qn('w:fill'), fill)  # set fill property, respecting namespace
+	    if color:
+	        pass # TODO
+	    if val:
+	        pass # TODO
+	    cell_properties.append(cell_shading)  # finally extend cell props with shading element
+
+	def add_subsection(self, subsection):
+		table = self.document.add_table(rows=0, cols=1) # Create table row
+		row_cells = table.add_row().cells # Get cells from first row
+		paragraph = row_cells[0].paragraphs[0] # Get the paragraph
+
+		paragraph_format = paragraph.paragraph_format # Get the paragraph format
+		# Adjust space before and after
+		paragraph_format.space_before = Pt(3)
+		paragraph_format.space_after = Pt(3)
+
+		# Add a new run to the paragraph, make the text bold and white and change the size and the background color
+		paragraph.add_run(subsection).bold = True # Add a number for each publication and make it bold
+		run = paragraph.runs[0]
+		font = run.font
+		font.size = Pt(13)
+		font.color.rgb = RGBColor.from_string('FFFFFF')
+		self.set_cell_background(row_cells[0], '0b306b')
+
+	def add_productions(self, productions_dict, subsection):
+		self.add_subsection(subsection)
+
 		for key, publication_type in productions_dict.items():
 			self.document.add_heading(key, 1) # Add the key as a title
 
