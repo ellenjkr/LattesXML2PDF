@@ -5,15 +5,15 @@ from docx.shared import RGBColor
 
 
 class WordFile():
-	def __init__(self, presentation, abstract, identification, address, bibliographic_productions_dict, technical_productions_dict, lines_of_research):
+	def __init__(self, resume):
 		super(WordFile, self).__init__()
-		self.presentation = presentation
-		self.abstract = abstract
-		self.identification = identification
-		self.address = address
-		self.bibliographic_productions_dict = bibliographic_productions_dict
-		self.technical_productions_dict = technical_productions_dict
-		self.lines_of_research = lines_of_research
+		self.presentation = resume.presentation
+		self.abstract = resume.abstract
+		self.identification = resume.identification
+		self.address = resume.address
+		self.bibliographic_productions_dict = resume.bibliographic_productions_dict
+		self.technical_productions_dict = resume.technical_productions_dict
+		self.lines_of_research = resume.lines_of_research
 
 		self.document = Document()
 
