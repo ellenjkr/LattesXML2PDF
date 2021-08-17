@@ -164,4 +164,4 @@ class WordFile():
 				keywords_paragraph.text = self.lines_of_research['key_words'][pos] # Add the title to the first paragraph
 
 	def save_document(self, document_name):
-		self.document.save(f'{document_name}.docx')
+		self.document.save(f'Files/{document_name}.docx')

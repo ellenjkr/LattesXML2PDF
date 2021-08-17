@@ -7,4 +7,4 @@ for resume in listdir("Resumes"):
 	resume = Resume(resume_path)
 
 	word = WordFile(resume.presentation, resume.abstract, resume.identification, resume.address, resume.bibliographic_productions_dict, resume.technical_productions_dict, resume.lines_of_research)
-	word.save_document('test')
+	word.save_document(resume)
