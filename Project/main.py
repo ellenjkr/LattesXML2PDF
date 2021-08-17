@@ -7,4 +7,4 @@ for resume_name in listdir("Files/Resumes"):
 	resume = Resume(resume_path)
 
 	word = WordFile(resume)
-	word.save_document(resume_name)
+	word.save_document(resume_name.replace('.xml', ''))
