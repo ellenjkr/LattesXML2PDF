@@ -11,9 +11,10 @@ class WordFile():
 		self.abstract = resume.abstract
 		self.identification = resume.identification
 		self.address = resume.address
+		self.lines_of_research = resume.lines_of_research
+		self.research_projects = resume.research_projects
 		self.bibliographic_productions_dict = resume.bibliographic_productions_dict
 		self.technical_productions_dict = resume.technical_productions_dict
-		self.lines_of_research = resume.lines_of_research
 
 		self.document = Document()
 
@@ -23,11 +24,13 @@ class WordFile():
 		self.add_abstract()
 		self.add_identification()
 		self.add_address()
+		self.document.add_heading("Linhas de pesquisa", 0) # Add a section
+		self.add_lines_of_research()
+		self.document.add_heading("Projetos de pesquisa", 0) # Add a section
+		self.add_research_projects()
 		self.document.add_heading("Produções", 0) # Add a section
 		self.add_productions(self.bibliographic_productions_dict, "Produção bibliográfica")
 		self.add_productions(self.technical_productions_dict, "Produção técnica")
-		self.document.add_heading("Linhas de pesquisa", 0) # Add a section
-		self.add_lines_of_research()
 
 		# # self.add_incomplete_articles()
 
@@ -163,5 +166,35 @@ class WordFile():
 				keywords_paragraph = row_cells[1].add_paragraph() # Add a second paragraph
 				keywords_paragraph.text = self.lines_of_research['key_words'][pos] # Add the title to the first paragraph
 
+	def add_research_projects(self):
+		table = self.document.add_table(rows=0, cols=2) # Create table
+		for pos, research in enumerate(self.research_projects['title']):
+			row_cells = table.add_row().cells # Get cells from row
+			row_cells[0].width = Pt(80) # Make the first cell smaller
+			paragraph = row_cells[0].paragraphs[0] # Get the paragraph
+			paragraph.add_run(self.research_projects['year_range'][pos]).bold = True # Add a number for each research and make it bold
+			run = paragraph.runs[0]
+			font = run.font
+			font.color.rgb = RGBColor.from_string('0b306b')
+			
+			row_cells[1].width = Pt(480) # Make the second cell bigger
+
+			title_paragraph = row_cells[1].paragraphs[0] # Get the cell first paragraph
+			title_paragraph.text = research # Add the title to the first paragraph
+
+			second_paragraph = row_cells[1].add_paragraph() # Add a second paragraph
+			second_paragraph.text = f"{self.research_projects['description'][pos]}\n{self.research_projects['situation/nature'][pos]}\n{self.research_projects['students'][pos]}" # Add the second paragraph content
+			second_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
+
+			third_paragraph = row_cells[1].add_paragraph() # Add a third paragraph
+			# Define the third paragraph content:
+			third_paragraph_content = self.research_projects['members'][pos] + "\n"
+			if self.research_projects['financiers'][pos] is not None: # If there's financiers
+				third_paragraph_content += self.research_projects['financiers'][pos] + "\n"
+			third_paragraph_content += self.research_projects['num_of_productions'][pos]
+			
+			third_paragraph.text = third_paragraph_content # Add the third paragraph content
+			third_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
+			
 	def save_document(self, document_name):
 		self.document.save(f'Files/{document_name}.docx')
