@@ -12,7 +12,7 @@ class WordFile():
 		self.identification = resume.identification
 		self.address = resume.address
 		self.lines_of_research = resume.lines_of_research
-		self.research_projects = resume.research_projects
+		self.projects_dict = resume.projects_dict
 		self.bibliographic_productions_dict = resume.bibliographic_productions_dict
 		self.technical_productions_dict = resume.technical_productions_dict
 
@@ -26,8 +26,7 @@ class WordFile():
 		self.add_address()
 		self.document.add_heading("Linhas de pesquisa", 0) # Add a section
 		self.add_lines_of_research()
-		self.document.add_heading("Projetos de pesquisa", 0) # Add a section
-		self.add_research_projects()
+		self.add_projects()
 		self.document.add_heading("Produções", 0) # Add a section
 		self.add_productions(self.bibliographic_productions_dict, "Produção bibliográfica")
 		self.add_productions(self.technical_productions_dict, "Produção técnica")
@@ -166,68 +165,73 @@ class WordFile():
 				keywords_paragraph = row_cells[1].add_paragraph() # Add a second paragraph
 				keywords_paragraph.text = self.lines_of_research['key_words'][pos] # Add the title to the first paragraph
 
-	def add_research_projects(self):
-		table = self.document.add_table(rows=0, cols=2) # Create table
-		for pos, research in enumerate(self.research_projects['title']):
-			row_cells = table.add_row().cells # Get cells from row
-			row_cells[0].width = Pt(80) # Make the first cell smaller
-			paragraph = row_cells[0].paragraphs[0] # Get the paragraph
-			paragraph.add_run(self.research_projects['year_range'][pos]).bold = True # Add a number for each research and make it bold
-			run = paragraph.runs[0]
-			font = run.font
-			font.color.rgb = RGBColor.from_string('0b306b')
+	def add_projects(self):
+		for project_nature in self.projects_dict.keys():
+			self.document.add_heading(project_nature, 0) # Add a section
 			
-			row_cells[1].width = Pt(480) # Make the second cell bigger
+			projects_list = self.projects_dict[project_nature]
+			table = self.document.add_table(rows=0, cols=2) # Create table
 
-			title_paragraph = row_cells[1].paragraphs[0] # Get the cell first paragraph
-			title_paragraph.text = research # Add the title to the first paragraph
+			for pos, research in enumerate(projects_list['title']):
+				row_cells = table.add_row().cells # Get cells from row
+				row_cells[0].width = Pt(80) # Make the first cell smaller
+				paragraph = row_cells[0].paragraphs[0] # Get the paragraph
+				paragraph.add_run(projects_list['year_range'][pos]).bold = True # Add a number for each research and make it bold
+				run = paragraph.runs[0]
+				font = run.font
+				font.color.rgb = RGBColor.from_string('0b306b')
+				
+				row_cells[1].width = Pt(480) # Make the second cell bigger
 
-			description_paragraph = row_cells[1].add_paragraph() # Add a description paragraph
-			description_paragraph.text = self.research_projects['description'][pos] # Add the description paragraph content
-			description_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
+				title_paragraph = row_cells[1].paragraphs[0] # Get the cell first paragraph
+				title_paragraph.text = research # Add the title to the first paragraph
 
-			# Format description paragraph
-			paragraph_format = description_paragraph.paragraph_format
-			paragraph_format.space_after = Pt(2)
+				description_paragraph = row_cells[1].add_paragraph() # Add a description paragraph
+				description_paragraph.text = projects_list['description'][pos] # Add the description paragraph content
+				description_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
 
-			sit_nat_paragraph = row_cells[1].add_paragraph() # Add a situation/nature paragraph
-			sit_nat_paragraph.text = self.research_projects['situation/nature'][pos] # Add the situation/nature paragraph content
+				# Format description paragraph
+				paragraph_format = description_paragraph.paragraph_format
+				paragraph_format.space_after = Pt(2)
 
-			# Format situation/nature paragraph
-			paragraph_format = sit_nat_paragraph.paragraph_format
-			paragraph_format.space_before = Pt(0)
-			paragraph_format.space_after = Pt(2)
+				sit_nat_paragraph = row_cells[1].add_paragraph() # Add a situation/nature paragraph
+				sit_nat_paragraph.text = projects_list['situation/nature'][pos] # Add the situation/nature paragraph content
 
-			students_paragraph = row_cells[1].add_paragraph() # Add a students paragraph
-			students_paragraph.text = self.research_projects['students'][pos] # Add the students paragraph content
-			students_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
-
-			members_paragraph = row_cells[1].add_paragraph() # Add a members paragraph
-			members_paragraph.text = self.research_projects['members'][pos] # Add the members paragraph content
-			if len(self.research_projects['members'][pos]) >= 70:
-				members_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
-
-			# Format members paragraph
-			paragraph_format = members_paragraph.paragraph_format
-			paragraph_format.space_after = Pt(2)
-
-			if self.research_projects['financiers'][pos] is not None: # If there's financiers
-				financiers_paragraph = row_cells[1].add_paragraph() # Add a financiers paragraph
-				financiers_paragraph.text = self.research_projects['financiers'][pos] # Add the financiers paragraph content
-				if len(self.research_projects['financiers'][pos]) >= 70:
-					financiers_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
-
-				# Format financiers paragraph
-				paragraph_format = financiers_paragraph.paragraph_format
+				# Format situation/nature paragraph
+				paragraph_format = sit_nat_paragraph.paragraph_format
 				paragraph_format.space_before = Pt(0)
 				paragraph_format.space_after = Pt(2)
 
-			cta_paragraph = row_cells[1].add_paragraph() # Add a num_of_productions paragraph
-			cta_paragraph.text = self.research_projects['num_of_productions'][pos] # Add the num_of_productions paragraph content
-			
-			if self.research_projects['financiers'][pos] is None: # If there's no financiers the cta paragraph will be the second one so it has a 0 space before
-				paragraph_format = cta_paragraph.paragraph_format
-				paragraph_format.space_before = Pt(0)
+				students_paragraph = row_cells[1].add_paragraph() # Add a students paragraph
+				students_paragraph.text = projects_list['students'][pos] # Add the students paragraph content
+				students_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
+
+				members_paragraph = row_cells[1].add_paragraph() # Add a members paragraph
+				members_paragraph.text = projects_list['members'][pos] # Add the members paragraph content
+				if len(projects_list['members'][pos]) >= 70:
+					members_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
+
+				# Format members paragraph
+				paragraph_format = members_paragraph.paragraph_format
+				paragraph_format.space_after = Pt(2)
+
+				if projects_list['financiers'][pos] is not None: # If there's financiers
+					financiers_paragraph = row_cells[1].add_paragraph() # Add a financiers paragraph
+					financiers_paragraph.text = projects_list['financiers'][pos] # Add the financiers paragraph content
+					if len(projects_list['financiers'][pos]) >= 70:
+						financiers_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
+
+					# Format financiers paragraph
+					paragraph_format = financiers_paragraph.paragraph_format
+					paragraph_format.space_before = Pt(0)
+					paragraph_format.space_after = Pt(2)
+
+				cta_paragraph = row_cells[1].add_paragraph() # Add a num_of_productions paragraph
+				cta_paragraph.text = projects_list['num_of_productions'][pos] # Add the num_of_productions paragraph content
+				
+				if projects_list['financiers'][pos] is None: # If there's no financiers the cta paragraph will be the second one so it has a 0 space before
+					paragraph_format = cta_paragraph.paragraph_format
+					paragraph_format.space_before = Pt(0)
 
 	def save_document(self, document_name):
 		self.document.save(f'Files/{document_name}.docx')
