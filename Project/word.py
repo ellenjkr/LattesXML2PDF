@@ -182,19 +182,52 @@ class WordFile():
 			title_paragraph = row_cells[1].paragraphs[0] # Get the cell first paragraph
 			title_paragraph.text = research # Add the title to the first paragraph
 
-			second_paragraph = row_cells[1].add_paragraph() # Add a second paragraph
-			second_paragraph.text = f"{self.research_projects['description'][pos]}\n{self.research_projects['situation/nature'][pos]}\n{self.research_projects['students'][pos]}" # Add the second paragraph content
-			second_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
+			description_paragraph = row_cells[1].add_paragraph() # Add a description paragraph
+			description_paragraph.text = self.research_projects['description'][pos] # Add the description paragraph content
+			description_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
 
-			third_paragraph = row_cells[1].add_paragraph() # Add a third paragraph
-			# Define the third paragraph content:
-			third_paragraph_content = self.research_projects['members'][pos] + "\n"
+			# Format description paragraph
+			paragraph_format = description_paragraph.paragraph_format
+			paragraph_format.space_after = Pt(2)
+
+			sit_nat_paragraph = row_cells[1].add_paragraph() # Add a situation/nature paragraph
+			sit_nat_paragraph.text = self.research_projects['situation/nature'][pos] # Add the situation/nature paragraph content
+
+			# Format situation/nature paragraph
+			paragraph_format = sit_nat_paragraph.paragraph_format
+			paragraph_format.space_before = Pt(0)
+			paragraph_format.space_after = Pt(2)
+
+			students_paragraph = row_cells[1].add_paragraph() # Add a students paragraph
+			students_paragraph.text = self.research_projects['students'][pos] # Add the students paragraph content
+			students_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
+
+			members_paragraph = row_cells[1].add_paragraph() # Add a members paragraph
+			members_paragraph.text = self.research_projects['members'][pos] # Add the members paragraph content
+			if len(self.research_projects['members'][pos]) >= 70:
+				members_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
+
+			# Format members paragraph
+			paragraph_format = members_paragraph.paragraph_format
+			paragraph_format.space_after = Pt(2)
+
 			if self.research_projects['financiers'][pos] is not None: # If there's financiers
-				third_paragraph_content += self.research_projects['financiers'][pos] + "\n"
-			third_paragraph_content += self.research_projects['num_of_productions'][pos]
+				financiers_paragraph = row_cells[1].add_paragraph() # Add a financiers paragraph
+				financiers_paragraph.text = self.research_projects['financiers'][pos] # Add the financiers paragraph content
+				if len(self.research_projects['financiers'][pos]) >= 70:
+					financiers_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
+
+				# Format financiers paragraph
+				paragraph_format = financiers_paragraph.paragraph_format
+				paragraph_format.space_before = Pt(0)
+				paragraph_format.space_after = Pt(2)
+
+			cta_paragraph = row_cells[1].add_paragraph() # Add a num_of_productions paragraph
+			cta_paragraph.text = self.research_projects['num_of_productions'][pos] # Add the num_of_productions paragraph content
 			
-			third_paragraph.text = third_paragraph_content # Add the third paragraph content
-			third_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
-			
+			if self.research_projects['financiers'][pos] is None: # If there's no financiers the cta paragraph will be the second one so it has a 0 space before
+				paragraph_format = cta_paragraph.paragraph_format
+				paragraph_format.space_before = Pt(0)
+
 	def save_document(self, document_name):
 		self.document.save(f'Files/{document_name}.docx')
