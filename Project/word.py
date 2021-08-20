@@ -13,6 +13,7 @@ class WordFile():
 		self.address = resume.address
 		self.lines_of_research = resume.lines_of_research
 		self.projects_dict = resume.projects_dict
+		self.other_professional_activities_dict = resume.other_professional_activities_dict
 		self.bibliographic_productions_dict = resume.bibliographic_productions_dict
 		self.technical_productions_dict = resume.technical_productions_dict
 
@@ -27,6 +28,7 @@ class WordFile():
 		self.document.add_heading("Linhas de pesquisa", 0) # Add a section
 		self.add_lines_of_research()
 		self.add_projects()
+		self.add_professional_activities()
 		self.document.add_heading("Produções", 0) # Add a section
 		self.add_productions(self.bibliographic_productions_dict, "Produção bibliográfica")
 		self.add_productions(self.technical_productions_dict, "Produção técnica")
@@ -119,28 +121,6 @@ class WordFile():
 		font.color.rgb = RGBColor.from_string('FFFFFF')
 		self.set_cell_background(row_cells[0], '0b306b')
 
-	def add_productions(self, productions_dict, subsection):
-		self.add_subsection(subsection)
-
-		for key, publication_type in productions_dict.items():
-			self.document.add_heading(key, 1) # Add the key as a title
-
-			table = self.document.add_table(rows=0, cols=2) # Create table
-
-			for pos, publication in enumerate(publication_type):
-				row_cells = table.add_row().cells # Get cells from row
-				row_cells[0].width = 5 # Make the first cell smaller
-				paragraph = row_cells[0].paragraphs[0] # Get the paragraph
-				paragraph.add_run(str(pos + 1)).bold = True # Add a number for each publication and make it bold
-				run = paragraph.runs[0]
-				font = run.font
-				font.color.rgb = RGBColor.from_string('0b306b')
-				
-				row_cells[1].width = Pt(500) # Make the second cell bigger
-				paragraph = row_cells[1].paragraphs[0] # Get the cell paragraph
-				paragraph.text = publication # Add the publication to the paragraph
-				paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
-
 	def add_lines_of_research(self):
 		table = self.document.add_table(rows=0, cols=2) # Create table
 		for pos, research in enumerate(self.lines_of_research['title']):
@@ -232,6 +212,51 @@ class WordFile():
 				if projects_list['financiers'][pos] is None: # If there's no financiers the cta paragraph will be the second one so it has a 0 space before
 					paragraph_format = cta_paragraph.paragraph_format
 					paragraph_format.space_before = Pt(0)
+
+	def add_professional_activities(self):
+		for activity_type in self.other_professional_activities_dict.keys():
+			self.document.add_heading(activity_type, 0) # Add a section
+			
+			activities_list = self.other_professional_activities_dict[activity_type]
+			table = self.document.add_table(rows=0, cols=2) # Create table
+
+			for pos, activity in enumerate(activities_list['institution']):
+				row_cells = table.add_row().cells # Get cells from row
+				row_cells[0].width = Pt(80) # Make the first cell smaller
+				paragraph = row_cells[0].paragraphs[0] # Get the paragraph
+				paragraph.add_run(activities_list['year_range'][pos]).bold = True # Add a number for each activity and make it bold
+				run = paragraph.runs[0]
+				font = run.font
+				font.color.rgb = RGBColor.from_string('0b306b')
+				
+				row_cells[1].width = Pt(480) # Make the second cell bigger
+
+				title_paragraph = row_cells[1].paragraphs[0] # Get the cell first paragraph
+				title_paragraph.text = activity # Add the title to the first paragraph
+				if len(activity) >= 70:
+					title_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
+
+	def add_productions(self, productions_dict, subsection):
+		self.add_subsection(subsection)
+
+		for key, publication_type in productions_dict.items():
+			self.document.add_heading(key, 1) # Add the key as a title
+
+			table = self.document.add_table(rows=0, cols=2) # Create table
+
+			for pos, publication in enumerate(publication_type):
+				row_cells = table.add_row().cells # Get cells from row
+				row_cells[0].width = 5 # Make the first cell smaller
+				paragraph = row_cells[0].paragraphs[0] # Get the paragraph
+				paragraph.add_run(str(pos + 1)).bold = True # Add a number for each publication and make it bold
+				run = paragraph.runs[0]
+				font = run.font
+				font.color.rgb = RGBColor.from_string('0b306b')
+				
+				row_cells[1].width = Pt(500) # Make the second cell bigger
+				paragraph = row_cells[1].paragraphs[0] # Get the cell paragraph
+				paragraph.text = publication # Add the publication to the paragraph
+				paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
 
 	def save_document(self, document_name):
 		self.document.save(f'Files/{document_name}.docx')

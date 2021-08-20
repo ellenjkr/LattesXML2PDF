@@ -1,8 +1,9 @@
 import xml.etree.ElementTree as ET
 
 from bibliographic_productions import Bibliographic_Productions
-from technical_productions import Technical_Productions
+from other_professional_activities import OtherProfessionalActivities
 from projects import Projects
+from technical_productions import Technical_Productions
 
 
 class Resume():
@@ -21,6 +22,9 @@ class Resume():
 
 		projects = Projects(self.xml_file)
 		self.projects_dict = projects.projects_dict
+
+		other_professional_activities = OtherProfessionalActivities(self.xml_file)
+		self.other_professional_activities_dict = other_professional_activities.activities_dict
 
 		bibliographic_productions = Bibliographic_Productions(self.xml_file)
 		self.bibliographic_productions_dict = bibliographic_productions.publications_dict
@@ -147,3 +151,4 @@ class Resume():
 			info['key_words'].append(keywords_string)
 
 		return info
+
