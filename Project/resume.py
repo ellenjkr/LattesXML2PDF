@@ -27,6 +27,7 @@ class Resume():
 		self.other_professional_activities_dict = other_professional_activities.activities_dict
 
 		self.areas_of_expertise = self.get_areas_of_expertise()
+		self.languages = self.get_languages()
 
 		bibliographic_productions = Bibliographic_Productions(self.xml_file)
 		self.bibliographic_productions_dict = bibliographic_productions.publications_dict
@@ -185,3 +186,24 @@ class Resume():
 		areas_strings = self.get_areas_of_expertise_strings(info)
 
 		return areas_strings
+
+	def get_languages(self):
+		# Find the tag
+		xml_path = 'IDIOMA'
+		languages = self.xml_file.findall(f".//{xml_path}")
+
+		info = {'language': [], 'string': []}
+
+		for language in languages:
+			language_name = language.attrib['DESCRICAO-DO-IDIOMA'].capitalize()
+			listening = "Compreende " + language.attrib['PROFICIENCIA-DE-COMPREENSAO'].capitalize()
+			speaking = "Fala " + language.attrib['PROFICIENCIA-DE-FALA'].capitalize()
+			reading = "Lê " + language.attrib['PROFICIENCIA-DE-LEITURA'].capitalize()
+			writing = "Escreve " + language.attrib['PROFICIENCIA-DE-ESCRITA'].capitalize()
+
+			string = f"{listening}, {speaking}, {reading}, {writing}."
+
+			info['language'].append(language_name)
+			info['string'].append(string)
+
+		return info
