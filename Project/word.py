@@ -16,6 +16,7 @@ class WordFile():
 		self.other_professional_activities_dict = resume.other_professional_activities_dict
 		self.areas_of_expertise = resume.areas_of_expertise
 		self.languages = resume.languages
+		self.awards = resume.awards
 		self.bibliographic_productions_dict = resume.bibliographic_productions_dict
 		self.technical_productions_dict = resume.technical_productions_dict
 
@@ -35,6 +36,8 @@ class WordFile():
 		self.add_numbered_table(self.areas_of_expertise)
 		self.document.add_heading("Idiomas", 0) # Add a section
 		self.add_languages()
+		self.document.add_heading("Prêmios e títulos", 0) # Add a section
+		self.add_awards()
 		self.document.add_heading("Produções", 0) # Add a section
 		self.add_productions(self.bibliographic_productions_dict, "Produção bibliográfica")
 		self.add_productions(self.technical_productions_dict, "Produção técnica")
@@ -250,6 +253,23 @@ class WordFile():
 			row_cells[0].width = 5 # Make the first cell smaller
 			paragraph = row_cells[0].paragraphs[0] # Get the paragraph
 			paragraph.add_run(language).bold = True # Add a number for each info and make it bold
+			run = paragraph.runs[0]
+			font = run.font
+			font.color.rgb = RGBColor.from_string('0b306b')
+			
+			row_cells[1].width = Pt(500) # Make the second cell bigger
+			paragraph = row_cells[1].paragraphs[0] # Get the cell paragraph
+			paragraph.text = string # Add the info to the paragraph
+			paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
+
+	def add_awards(self):
+		table = self.document.add_table(rows=0, cols=2) # Create table
+
+		for year, string in zip(self.awards['year'], self.awards['string']):
+			row_cells = table.add_row().cells # Get cells from row
+			row_cells[0].width = 5 # Make the first cell smaller
+			paragraph = row_cells[0].paragraphs[0] # Get the paragraph
+			paragraph.add_run(year).bold = True # Add a number for each info and make it bold
 			run = paragraph.runs[0]
 			font = run.font
 			font.color.rgb = RGBColor.from_string('0b306b')

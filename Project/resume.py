@@ -1,5 +1,7 @@
 import xml.etree.ElementTree as ET
 
+import pandas as pd
+
 from bibliographic_productions import Bibliographic_Productions
 from other_professional_activities import OtherProfessionalActivities
 from projects import Projects
@@ -28,6 +30,7 @@ class Resume():
 
 		self.areas_of_expertise = self.get_areas_of_expertise()
 		self.languages = self.get_languages()
+		self.awards = self.get_awards()
 
 		bibliographic_productions = Bibliographic_Productions(self.xml_file)
 		self.bibliographic_productions_dict = bibliographic_productions.publications_dict
@@ -207,3 +210,31 @@ class Resume():
 			info['string'].append(string)
 
 		return info
+
+	def sort_by_key(self, data_dict, key, ascending=True):
+		data_df = pd.DataFrame(data_dict)
+		data_df.sort_values(by=[key], inplace=True, ascending=ascending)
+		data_df.reset_index(drop=True, inplace=True)
+
+		return data_df
+
+	def get_awards(self):
+		# Find the tag
+		xml_path = 'PREMIO-TITULO'
+		awards = self.xml_file.findall(f".//{xml_path}")
+
+		info = {'year': [], 'string': []}
+
+		for award in awards:
+			year = award.attrib['ANO-DA-PREMIACAO']
+			title = award.attrib['NOME-DO-PREMIO-OU-TITULO']
+			entity = award.attrib['NOME-DA-ENTIDADE-PROMOTORA']
+
+			string = f"{title}, {entity}"
+			info['year'].append(year)
+			info['string'].append(string)
+
+		# Sort awards by year
+		info_df = self.sort_by_key(info, "year", ascending=False)
+
+		return info_df
