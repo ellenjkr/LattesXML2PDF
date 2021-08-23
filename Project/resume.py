@@ -26,6 +26,8 @@ class Resume():
 		other_professional_activities = OtherProfessionalActivities(self.xml_file)
 		self.other_professional_activities_dict = other_professional_activities.activities_dict
 
+		self.areas_of_expertise = self.get_areas_of_expertise()
+
 		bibliographic_productions = Bibliographic_Productions(self.xml_file)
 		self.bibliographic_productions_dict = bibliographic_productions.publications_dict
 
@@ -152,3 +154,34 @@ class Resume():
 
 		return info
 
+	def get_areas_of_expertise_strings(self, info):
+		strings = []
+		fields = zip(info['great_area'], info['area'], info['sub_area'], info['specialty']) # Select fields
+
+		for great_area, area, sub_area, specialty in fields: # Get info from each field
+			great_area = great_area.capitalize().replace('_', ' ')
+			string = f"Grande área: {great_area} / Área: {area} / Subárea: {sub_area} / Especialidade: {specialty}."
+			strings.append(string)
+
+		return strings
+
+	def get_areas_of_expertise(self):
+		# Find the tag
+		xml_path = 'AREA-DE-ATUACAO'
+		areas = self.xml_file.findall(f".//{xml_path}")
+
+		info = {'great_area': [], 'area': [], 'sub_area': [], 'specialty': []}
+		for area in areas:
+			great_area = area.attrib['NOME-GRANDE-AREA-DO-CONHECIMENTO']
+			main_area = area.attrib['NOME-DA-AREA-DO-CONHECIMENTO']
+			sub_area = area.attrib['NOME-DA-SUB-AREA-DO-CONHECIMENTO']
+			specialty = area.attrib['NOME-DA-ESPECIALIDADE']
+
+			info['great_area'].append(great_area)
+			info['area'].append(main_area)
+			info['sub_area'].append(sub_area)
+			info['specialty'].append(specialty)
+		
+		areas_strings = self.get_areas_of_expertise_strings(info)
+
+		return areas_strings

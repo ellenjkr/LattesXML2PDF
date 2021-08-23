@@ -14,6 +14,7 @@ class WordFile():
 		self.lines_of_research = resume.lines_of_research
 		self.projects_dict = resume.projects_dict
 		self.other_professional_activities_dict = resume.other_professional_activities_dict
+		self.areas_of_expertise = resume.areas_of_expertise
 		self.bibliographic_productions_dict = resume.bibliographic_productions_dict
 		self.technical_productions_dict = resume.technical_productions_dict
 
@@ -29,6 +30,8 @@ class WordFile():
 		self.add_lines_of_research()
 		self.add_projects()
 		self.add_professional_activities()
+		self.document.add_heading("Áreas de atuação", 0) # Add a section
+		self.add_numbered_table(self.areas_of_expertise)
 		self.document.add_heading("Produções", 0) # Add a section
 		self.add_productions(self.bibliographic_productions_dict, "Produção bibliográfica")
 		self.add_productions(self.technical_productions_dict, "Produção técnica")
@@ -236,27 +239,46 @@ class WordFile():
 				if len(activity) >= 70:
 					title_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
 
+	def add_numbered_table(self, info_list):
+		table = self.document.add_table(rows=0, cols=2) # Create table
+
+		for pos, info in enumerate(info_list):
+			row_cells = table.add_row().cells # Get cells from row
+			row_cells[0].width = 5 # Make the first cell smaller
+			paragraph = row_cells[0].paragraphs[0] # Get the paragraph
+			paragraph.add_run(str(pos + 1)).bold = True # Add a number for each info and make it bold
+			run = paragraph.runs[0]
+			font = run.font
+			font.color.rgb = RGBColor.from_string('0b306b')
+			
+			row_cells[1].width = Pt(500) # Make the second cell bigger
+			paragraph = row_cells[1].paragraphs[0] # Get the cell paragraph
+			paragraph.text = info # Add the info to the paragraph
+			paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
+
 	def add_productions(self, productions_dict, subsection):
 		self.add_subsection(subsection)
 
 		for key, publication_type in productions_dict.items():
 			self.document.add_heading(key, 1) # Add the key as a title
 
-			table = self.document.add_table(rows=0, cols=2) # Create table
+			self.add_numbered_table(publication_type)
 
-			for pos, publication in enumerate(publication_type):
-				row_cells = table.add_row().cells # Get cells from row
-				row_cells[0].width = 5 # Make the first cell smaller
-				paragraph = row_cells[0].paragraphs[0] # Get the paragraph
-				paragraph.add_run(str(pos + 1)).bold = True # Add a number for each publication and make it bold
-				run = paragraph.runs[0]
-				font = run.font
-				font.color.rgb = RGBColor.from_string('0b306b')
+			# table = self.document.add_table(rows=0, cols=2) # Create table
+
+			# for pos, publication in enumerate(publication_type):
+			# 	row_cells = table.add_row().cells # Get cells from row
+			# 	row_cells[0].width = 5 # Make the first cell smaller
+			# 	paragraph = row_cells[0].paragraphs[0] # Get the paragraph
+			# 	paragraph.add_run(str(pos + 1)).bold = True # Add a number for each publication and make it bold
+			# 	run = paragraph.runs[0]
+			# 	font = run.font
+			# 	font.color.rgb = RGBColor.from_string('0b306b')
 				
-				row_cells[1].width = Pt(500) # Make the second cell bigger
-				paragraph = row_cells[1].paragraphs[0] # Get the cell paragraph
-				paragraph.text = publication # Add the publication to the paragraph
-				paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
+			# 	row_cells[1].width = Pt(500) # Make the second cell bigger
+			# 	paragraph = row_cells[1].paragraphs[0] # Get the cell paragraph
+			# 	paragraph.text = publication # Add the publication to the paragraph
+			# 	paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
 
 	def save_document(self, document_name):
 		self.document.save(f'Files/{document_name}.docx')

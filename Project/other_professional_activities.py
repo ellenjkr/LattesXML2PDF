@@ -35,8 +35,6 @@ class OtherProfessionalActivities():
 					if bond_info.attrib['OUTRO-VINCULO-INFORMADO'] != "":
 						bond = bond_info.attrib['OUTRO-VINCULO-INFORMADO']
 						institution = tag.attrib['NOME-INSTITUICAO']
-						# if bond_content != []: 
-						print(tag.attrib.keys())
 						year_range = f"{bond_info.attrib['ANO-INICIO']} - {bond_info.attrib['ANO-FIM']}"
 						if year_range[-1] == " ": # If "ANO-FIM" == ""
 							year_range += "Atual"
