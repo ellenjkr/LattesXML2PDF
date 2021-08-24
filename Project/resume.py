@@ -20,6 +20,7 @@ class Resume():
 		self.identification = self.get_identification()
 		self.address = self.get_address()
 		self.academic_titles = self.get_academic_titles()
+		self.complementary_courses = self.get_complementary_courses()
 
 		self.lines_of_research = self.get_lines_of_research()
 
@@ -287,3 +288,27 @@ class Resume():
 
 		return info_df
 
+	def get_complementary_courses(self):
+		# Find the tag
+		xml_path = 'FORMACAO-COMPLEMENTAR'
+		courses = self.xml_file.find(f".//{xml_path}")
+
+		info = {'year_range': [], 'course_name': [], 'institution': []}
+		for course in courses:
+			year_range = f"{course.attrib['ANO-DE-INICIO']} - {course.attrib['ANO-DE-CONCLUSAO']}"
+			if year_range[-1] == " ": # If "ANO-FIM" == ""
+				year_range += "Atual"
+			
+			course_name = f"{course.attrib['NOME-CURSO']}. (Carga horária: {course.attrib['CARGA-HORARIA']}h)."
+			if course.tag == 'FORMACAO-COMPLEMENTAR-DE-EXTENSAO-UNIVERSITARIA':
+				course_name = f"Extensão universitária em {course_name}"
+			
+			institution = course.attrib['NOME-INSTITUICAO']
+		
+			info['year_range'].append(year_range)
+			info['course_name'].append(course_name)
+			info['institution'].append(institution)
+
+		info_df = self.sort_by_key(info, "year_range", ascending=False)
+
+		return info_df
