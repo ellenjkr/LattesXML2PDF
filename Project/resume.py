@@ -19,6 +19,7 @@ class Resume():
 		self.presentation = self.get_presentation()
 		self.identification = self.get_identification()
 		self.address = self.get_address()
+		self.academic_titles = self.get_academic_titles()
 
 		self.lines_of_research = self.get_lines_of_research()
 
@@ -127,6 +128,23 @@ class Resume():
 
 		return address
 
+	def get_key_words(self, xml_content):
+		keywords_xml_path = 'PALAVRAS-CHAVE'
+		keywords = xml_content.find(f".//{keywords_xml_path}") # Get keywords
+		if keywords != None and keywords != []: # Check if the xml content has keywords
+			keywords_string = "Palavras-chave: "
+			for key in keywords.attrib.keys(): # For each key
+				if keywords.attrib[key] != "": # Check if it is empty
+					keywords_string += f"{keywords.attrib[key]}; " # Add the keyword to the string
+
+			keywords_string = keywords_string[: -2] # Remove the ", " after the last keyword
+			keywords_string += '.' # Add a "." after the last keyword
+
+		else:
+			keywords_string = ""
+
+		return keywords_string
+
 	def get_lines_of_research(self):
 		# Find the tag
 		xml_path = 'LINHA-DE-PESQUISA'
@@ -138,19 +156,7 @@ class Resume():
 			title = research.attrib['TITULO-DA-LINHA-DE-PESQUISA']
 			goals = research.attrib['OBJETIVOS-LINHA-DE-PESQUISA']
 			
-			keywords_xml_path = 'PALAVRAS-CHAVE'
-			keywords = research.find(f".//{keywords_xml_path}") # Get keywords
-			if keywords != None and keywords != []: # Check if the line of research has keywords
-				keywords_string = "Palavras-chave: "
-				for key in keywords.attrib.keys(): # For each key
-					if keywords.attrib[key] != "": # Check if it is empty
-						keywords_string += f"{keywords.attrib[key]}; " # Add the keyword to the string
-
-				keywords_string = keywords_string[: -2] # Remove the ", " after the last keyword
-				keywords_string += '.' # Add a "." after the last keyword
-	
-			else:
-				keywords_string = ""
+			keywords_string = self.get_key_words(research)
 			
 			info['title'].append(title)
 			info['goals'].append(f"Objetivo: {goals}")
@@ -238,3 +244,46 @@ class Resume():
 		info_df = self.sort_by_key(info, "year", ascending=False)
 
 		return info_df
+
+	def get_academic_titles(self):
+		# Find the tag
+		xml_path = 'FORMACAO-ACADEMICA-TITULACAO'
+		titles = self.xml_file.find(f".//{xml_path}")
+
+		info = {'year_range': [], 'academic_title': [], 'institution': [], 'project_title': [], 'advisor': [], 'scholarship': [], 'key_words': []}
+		for title in titles:
+			year_range = f"{title.attrib['ANO-DE-INICIO']} - {title.attrib['ANO-DE-CONCLUSAO']}"
+			if year_range[-1] == " ": # If "ANO-FIM" == ""
+				year_range += "Atual"
+			graduation = title.attrib['NOME-CURSO']
+			academic_title = f"{title.tag.capitalize()} em {graduation.title()}"
+			institution = title.attrib['NOME-INSTITUICAO']
+			if 'TITULO-DA-DISSERTACAO-TESE' in title.attrib.keys():
+				title_year = title.attrib['ANO-DE-OBTENCAO-DO-TITULO']
+				project_title = f"Título: {title.attrib['TITULO-DA-DISSERTACAO-TESE']}, Ano de obtenção: {title_year}."
+			else:
+				project_title = ''
+
+			if 'NOME-COMPLETO-DO-ORIENTADOR' in title.attrib.keys():
+				advisor = f"Orientador: {title.attrib['NOME-COMPLETO-DO-ORIENTADOR']}"
+			else:
+				advisor = ''
+			
+			if title.attrib['NOME-AGENCIA'] != "":
+				scholarship = f"Bolsista do(a): {title.attrib['NOME-AGENCIA']}" 
+			else:
+				scholarship = ""
+			keywords = self.get_key_words(title)
+	
+			info['year_range'].append(year_range)
+			info['academic_title'].append(academic_title)
+			info['institution'].append(institution)
+			info['project_title'].append(project_title)
+			info['advisor'].append(advisor)
+			info['scholarship'].append(scholarship)
+			info['key_words'].append(keywords)
+
+		info_df = self.sort_by_key(info, "year_range", ascending=False)
+
+		return info_df
+

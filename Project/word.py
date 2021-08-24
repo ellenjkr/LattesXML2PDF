@@ -11,6 +11,7 @@ class WordFile():
 		self.abstract = resume.abstract
 		self.identification = resume.identification
 		self.address = resume.address
+		self.academic_titles = resume.academic_titles
 		self.lines_of_research = resume.lines_of_research
 		self.projects_dict = resume.projects_dict
 		self.other_professional_activities_dict = resume.other_professional_activities_dict
@@ -28,6 +29,7 @@ class WordFile():
 		self.add_abstract()
 		self.add_identification()
 		self.add_address()
+		self.add_academic_titles()
 		self.document.add_heading("Linhas de pesquisa", 0) # Add a section
 		self.add_lines_of_research()
 		self.add_projects()
@@ -95,6 +97,43 @@ class WordFile():
 			row_cells = table.add_row().cells
 			row_cells[1].text = value
 
+	def add_academic_titles(self):
+		self.document.add_heading("Formação acadêmica/titulação", 1) # Add "Formação acadêmica/titulação" as a title
+		table = self.document.add_table(rows=0, cols=2) # Create table
+
+		for pos, academic_title in enumerate(self.academic_titles['academic_title']):
+			row_cells = table.add_row().cells # Get cells from row
+			row_cells[0].width = Pt(80) # Make the first cell smaller
+			paragraph = row_cells[0].paragraphs[0] # Get the paragraph
+			paragraph.add_run(self.academic_titles['year_range'][pos]).bold = True # Add a number for each research and make it bold
+			run = paragraph.runs[0]
+			font = run.font
+			font.color.rgb = RGBColor.from_string('0b306b')
+			
+			row_cells[1].width = Pt(480) # Make the second cell bigger
+
+			academic_title_paragraph = row_cells[1].paragraphs[0] # Get the cell first paragraph
+			academic_title_paragraph.text = academic_title # Add the academic title to the first paragraph
+
+			institution_paragraph = row_cells[1].add_paragraph() # Add a second paragraph
+			institution_paragraph.text = self.academic_titles['institution'][pos] # Add the institution to the paragraph
+			
+			if self.academic_titles['project_title'][pos] != "": # If it has keywords
+				project_title_paragraph = row_cells[1].add_paragraph() # Add the project title paragraph
+				project_title_paragraph.text = self.academic_titles['project_title'][pos] # Add the project title content
+
+			if self.academic_titles['advisor'][pos] != "": # If it has keywords
+				advisor_paragraph = row_cells[1].add_paragraph() # Add the advisor paragraph
+				advisor_paragraph.text = self.academic_titles['advisor'][pos] # Add the advisor content
+
+			if self.academic_titles['scholarship'][pos] != "": # If it has keywords
+				scholarship_paragraph = row_cells[1].add_paragraph() # Add the scholarship paragraph
+				scholarship_paragraph.text = self.academic_titles['scholarship'][pos] # Add the scholarship content
+
+			if self.academic_titles['key_words'][pos] != "": # If it has keywords
+				keywords_paragraph = row_cells[1].add_paragraph() # Add the keywords paragraph
+				keywords_paragraph.text = self.academic_titles['key_words'][pos] # Add the keywords content
+
 	def set_cell_background(self, cell, fill, color=None, val=None):
 	    from docx.oxml.shared import qn  # feel free to move these out
 	    from docx.oxml.xmlchemy import OxmlElement
@@ -151,8 +190,8 @@ class WordFile():
 			goals_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY # Justify the paragraph
 
 			if self.lines_of_research['key_words'][pos] != "": # If it has keywords
-				keywords_paragraph = row_cells[1].add_paragraph() # Add a second paragraph
-				keywords_paragraph.text = self.lines_of_research['key_words'][pos] # Add the title to the first paragraph
+				keywords_paragraph = row_cells[1].add_paragraph() # Add the keywords paragraph
+				keywords_paragraph.text = self.lines_of_research['key_words'][pos] # Add the keywords to the paragraph
 
 	def add_projects(self):
 		for project_nature in self.projects_dict.keys():
