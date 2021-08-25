@@ -6,6 +6,7 @@ from bibliographic_productions import Bibliographic_Productions
 from other_professional_activities import OtherProfessionalActivities
 from projects import Projects
 from technical_productions import Technical_Productions
+from professional_activities import ProfessionalActivities
 
 
 class Resume():
@@ -21,6 +22,9 @@ class Resume():
 		self.address = self.get_address()
 		self.academic_titles = self.get_academic_titles()
 		self.complementary_courses = self.get_complementary_courses()
+
+		professional_activities = ProfessionalActivities(self.xml_file)
+		#self.professional_activities_dict = professional_activities.activities_dict
 
 		self.lines_of_research = self.get_lines_of_research()
 
