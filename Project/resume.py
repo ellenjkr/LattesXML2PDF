@@ -24,7 +24,7 @@ class Resume():
 		self.complementary_courses = self.get_complementary_courses()
 
 		professional_activities = ProfessionalActivities(self.xml_file)
-		#self.professional_activities_dict = professional_activities.activities_dict
+		self.professional_activities_list = professional_activities.professional_activities
 
 		self.lines_of_research = self.get_lines_of_research()
 

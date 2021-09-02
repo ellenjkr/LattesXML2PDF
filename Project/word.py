@@ -13,6 +13,7 @@ class WordFile():
 		self.address = resume.address
 		self.academic_titles = resume.academic_titles
 		self.complementary_courses = resume.complementary_courses
+		self.professional_activities_list = resume.professional_activities_list
 		self.lines_of_research = resume.lines_of_research
 		self.projects_dict = resume.projects_dict
 		self.other_professional_activities_dict = resume.other_professional_activities_dict
@@ -32,10 +33,12 @@ class WordFile():
 		self.add_address()
 		self.add_academic_titles()
 		self.add_complementary_courses()
+		self.document.add_heading("Atuação Profissional", 0) # Add a section
+		self.add_professional_activities()
 		self.document.add_heading("Linhas de pesquisa", 0) # Add a section
 		self.add_lines_of_research()
 		self.add_projects()
-		self.add_professional_activities()
+		self.add_other_professional_activities()
 		self.document.add_heading("Áreas de atuação", 0) # Add a section
 		self.add_numbered_table(self.areas_of_expertise)
 		self.document.add_heading("Idiomas", 0) # Add a section
@@ -158,21 +161,21 @@ class WordFile():
 			institution_paragraph.text = self.complementary_courses['institution'][pos] # Add the institution to the paragraph
 
 	def set_cell_background(self, cell, fill, color=None, val=None):
-	    from docx.oxml.shared import qn  # feel free to move these out
-	    from docx.oxml.xmlchemy import OxmlElement
+		from docx.oxml.shared import qn  # feel free to move these out
+		from docx.oxml.xmlchemy import OxmlElement
 
-	    cell_properties = cell._element.tcPr
-	    try:
-	        cell_shading = cell_properties.xpath('w:shd')[0]  # in case there's already shading
-	    except IndexError:
-	        cell_shading = OxmlElement('w:shd') # add new w:shd element to it
-	    if fill:
-	        cell_shading.set(qn('w:fill'), fill)  # set fill property, respecting namespace
-	    if color:
-	        pass # TODO
-	    if val:
-	        pass # TODO
-	    cell_properties.append(cell_shading)  # finally extend cell props with shading element
+		cell_properties = cell._element.tcPr
+		try:
+			cell_shading = cell_properties.xpath('w:shd')[0]  # in case there's already shading
+		except IndexError:
+			cell_shading = OxmlElement('w:shd') # add new w:shd element to it
+		if fill:
+			cell_shading.set(qn('w:fill'), fill)  # set fill property, respecting namespace
+		if color:
+			pass # TODO
+		if val:
+			pass # TODO
+		cell_properties.append(cell_shading)  # finally extend cell props with shading element
 
 	def add_subsection(self, subsection):
 		table = self.document.add_table(rows=0, cols=1) # Create table row
@@ -191,6 +194,81 @@ class WordFile():
 		font.size = Pt(13)
 		font.color.rgb = RGBColor.from_string('FFFFFF')
 		self.set_cell_background(row_cells[0], '0b306b')
+
+	def add_professional_activities(self):
+		for item in self.professional_activities_list:
+			self.add_subsection(item['institution'])
+			bonds_paragraph = self.document.add_paragraph()
+			bonds_paragraph.add_run('Vínculo institucional').bold = True # Add the year range for each bond and make it bold
+			run = bonds_paragraph.runs[0]
+			font = run.font
+			font.size = Pt(12)
+			
+			# Format paragraph
+			bonds_paragraph_format = bonds_paragraph.paragraph_format
+			bonds_paragraph_format.space_before = Pt(4)
+			bonds_paragraph_format.space_after = Pt(4)
+
+			table = self.document.add_table(rows=0, cols=2) # Create table
+
+			for bond in item['Vínculo institucional']:
+				row_cells = table.add_row().cells # Get cells from row
+				row_cells[0].width = Pt(120) # Make the first cell smaller
+				paragraph = row_cells[0].paragraphs[0] # Get the paragraph
+				paragraph.add_run(bond['year_range']).bold = True # Add the year range for each bond and make it bold
+				run = paragraph.runs[0]
+				font = run.font
+				font.color.rgb = RGBColor.from_string('0b306b')
+				
+				row_cells[1].width = Pt(440) # Make the second cell bigger
+
+				bond_paragraph = row_cells[1].paragraphs[0] # Get the cell first paragraph
+				bond_paragraph.text = bond['content'] # Add the bond content to the paragraph
+				if len(bond['content']) >= 70:
+					bond_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+
+				if 'second_line' in bond.keys():
+					row_cells = table.add_row().cells # Get cells from row
+					row_cells[0].width = Pt(120) # Make the first cell smaller
+					paragraph = row_cells[0].paragraphs[0] # Get the paragraph
+					paragraph.add_run(bond['second_line']).bold = True # Add the year range for each bond and make it bold
+					run = paragraph.runs[0]
+					font = run.font
+					font.color.rgb = RGBColor.from_string('0b306b')
+					
+					row_cells[1].width = Pt(440) # Make the second cell bigger
+
+					second_line_paragraph = row_cells[1].paragraphs[0] # Get the cell first paragraph
+					second_line_paragraph.text = bond['second_line_content'] # Add the bond content to the paragraph
+					if len(bond['second_line_content']) >= 70:
+						second_line_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+
+			if item['Atividades'] is not None:
+				activities_paragraph = self.document.add_paragraph()
+				activities_paragraph.add_run('Atividades').bold = True # Add the year range for each bond and make it bold
+				run = activities_paragraph.runs[0]
+				font = run.font
+				font.size = Pt(12)
+
+				activities_paragraph_format = activities_paragraph.paragraph_format
+				activities_paragraph_format.space_before = Pt(4)
+				activities_paragraph_format.space_after = Pt(4)
+
+				table2 = self.document.add_table(rows=0, cols=2) # Create table
+				
+				for activity in item['Atividades']:
+					row_cells2 = table2.add_row().cells # Get cells from row
+					row_cells2[0].width = Pt(120) # Make the first cell smaller
+					paragraph2 = row_cells2[0].paragraphs[0] # Get the paragraph
+					paragraph2.add_run(activity['year_range']).bold = True # Add the year range for each activity and make it bold
+					run2 = paragraph2.runs[0]
+					font2 = run2.font
+					font2.color.rgb = RGBColor.from_string('0b306b')
+				
+					row_cells2[1].width = Pt(440) # Make the second cell bigger
+
+					activity_paragraph = row_cells2[1].paragraphs[0] # Get the cell first paragraph
+					activity_paragraph.text = activity['content'] # Add the activity content to the paragraph
 
 	def add_lines_of_research(self):
 		table = self.document.add_table(rows=0, cols=2) # Create table
@@ -284,7 +362,7 @@ class WordFile():
 					paragraph_format = cta_paragraph.paragraph_format
 					paragraph_format.space_before = Pt(0)
 
-	def add_professional_activities(self):
+	def add_other_professional_activities(self):
 		for activity_type in self.other_professional_activities_dict.keys():
 			self.document.add_heading(activity_type, 0) # Add a section
 			
