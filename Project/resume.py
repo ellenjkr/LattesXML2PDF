@@ -7,6 +7,7 @@ from other_professional_activities import OtherProfessionalActivities
 from projects import Projects
 from technical_productions import Technical_Productions
 from professional_activities import ProfessionalActivities
+from orientations import Orientations
 
 
 class Resume():
@@ -43,14 +44,20 @@ class Resume():
 
 		technical_productions = Technical_Productions(self.xml_file)
 		self.technical_productions_dict = technical_productions.publications_dict
-		
+
+		# self.other_technical_productions = self.get_other_technical_productions()
+		# self.registers = self.get_registers()
+
+		orientations = Orientations(self.xml_file)
+		self.orientations = orientations.orientations_dict
+
 	def open_file(self):
-		xml_file = ET.parse(self.resume_path) # Open file
+		xml_file = ET.parse(self.resume_path)  # Open file
 		xml_file = xml_file.getroot()
 
 		return xml_file
 
-	def format_update_date(self, date): # Format date from text to "00/00/0000"
+	def format_update_date(self, date):  # Format date from text to "00/00/0000"
 		day = date[:2]
 		month = date[2:4]
 		year = date[4:]
@@ -98,7 +105,7 @@ class Resume():
 		orcid_id = general_data.attrib['ORCID-ID']
 		lattes_id = self.xml_file.attrib['NUMERO-IDENTIFICADOR']
 
-		identification = {"Nome": author_name, "Nome em citações bibliográficas": citation_name, "Lattes iD": lattes_id, "Orcid iD": orcid_id} # Build dictionary with the data
+		identification = {"Nome": author_name, "Nome em citações bibliográficas": citation_name, "Lattes iD": lattes_id, "Orcid iD": orcid_id}  # Build dictionary with the data
 
 		return identification
 
@@ -135,15 +142,15 @@ class Resume():
 
 	def get_key_words(self, xml_content):
 		keywords_xml_path = 'PALAVRAS-CHAVE'
-		keywords = xml_content.find(f".//{keywords_xml_path}") # Get keywords
-		if keywords != None and keywords != []: # Check if the xml content has keywords
+		keywords = xml_content.find(f".//{keywords_xml_path}")  # Get keywords
+		if keywords != None and keywords != []:  # Check if the xml content has keywords
 			keywords_string = "Palavras-chave: "
-			for key in keywords.attrib.keys(): # For each key
-				if keywords.attrib[key] != "": # Check if it is empty
-					keywords_string += f"{keywords.attrib[key]}; " # Add the keyword to the string
+			for key in keywords.attrib.keys():  # For each key
+				if keywords.attrib[key] != "":  # Check if it is empty
+					keywords_string += f"{keywords.attrib[key]}; "  # Add the keyword to the string
 
-			keywords_string = keywords_string[: -2] # Remove the ", " after the last keyword
-			keywords_string += '.' # Add a "." after the last keyword
+			keywords_string = keywords_string[: -2]  # Remove the ", " after the last keyword
+			keywords_string += '.'  # Add a "." after the last keyword
 
 		else:
 			keywords_string = ""
@@ -171,9 +178,9 @@ class Resume():
 
 	def get_areas_of_expertise_strings(self, info):
 		strings = []
-		fields = zip(info['great_area'], info['area'], info['sub_area'], info['specialty']) # Select fields
+		fields = zip(info['great_area'], info['area'], info['sub_area'], info['specialty'])  # Select fields
 
-		for great_area, area, sub_area, specialty in fields: # Get info from each field
+		for great_area, area, sub_area, specialty in fields:  # Get info from each field
 			great_area = great_area.capitalize().replace('_', ' ')
 			string = f"Grande área: {great_area} / Área: {area} / Subárea: {sub_area} / Especialidade: {specialty}."
 			strings.append(string)
@@ -258,7 +265,7 @@ class Resume():
 		info = {'year_range': [], 'academic_title': [], 'institution': [], 'project_title': [], 'advisor': [], 'scholarship': [], 'key_words': []}
 		for title in titles:
 			year_range = f"{title.attrib['ANO-DE-INICIO']} - {title.attrib['ANO-DE-CONCLUSAO']}"
-			if year_range[-1] == " ": # If "ANO-FIM" == ""
+			if year_range[-1] == " ":  # If "ANO-FIM" == ""
 				year_range += "Atual"
 			graduation = title.attrib['NOME-CURSO']
 			academic_title = f"{title.tag.capitalize()} em {graduation.title()}"
@@ -300,7 +307,7 @@ class Resume():
 		info = {'year_range': [], 'course_name': [], 'institution': []}
 		for course in courses:
 			year_range = f"{course.attrib['ANO-DE-INICIO']} - {course.attrib['ANO-DE-CONCLUSAO']}"
-			if year_range[-1] == " ": # If "ANO-FIM" == ""
+			if year_range[-1] == " ":  # If "ANO-FIM" == ""
 				year_range += "Atual"
 			
 			course_name = f"{course.attrib['NOME-CURSO']}. (Carga horária: {course.attrib['CARGA-HORARIA']}h)."
@@ -316,3 +323,87 @@ class Resume():
 		info_df = self.sort_by_key(info, "year_range", ascending=False)
 
 		return info_df
+
+	def get_authors_string(self, xml_child):
+		authors_string = ""
+		authors = xml_child.findall(f".//AUTORES")
+		for pos, author in enumerate(authors):
+			if pos != 0:
+				authors_string += '; '
+			authors_string += author.attrib['NOME-PARA-CITACAO']
+
+		return authors_string
+
+	# def get_other_technical_productions(self):
+	# 	# Find the tag
+	# 	xml_path = 'DEMAIS-TIPOS-DE-PRODUCAO-TECNICA'
+	# 	productions = self.xml_file.find(f".//{xml_path}")
+
+	# 	info = {'authors': [], 'year': [], 'title': [], 'production_type': [], 'level': []}
+	# 	for production in productions:
+	# 		if production.tag != 'APRESENTACAO-DE-TRABALHO':
+	# 			year = None
+	# 			title = None
+	# 			production_type = None
+	# 			level = None
+	# 			for tag in production:
+	# 				if 'DADOS-BASICOS' in tag.tag:
+	# 					year = tag.attrib['ANO']
+	# 					title = tag.attrib['TITULO']
+	# 					production_type = production.tag.replace('-', ' ').capitalize()
+	# 					if 'NIVEL-DO-CURSO' in tag.attrib.keys():
+	# 						level = tag.attrib['NIVEL-DO-CURSO']
+
+	# 			info['authors'].append(self.get_authors_string(production))
+	# 			info['year'].append(year)
+	# 			info['title'].append(title)
+	# 			info['production_type'].append(production_type)
+	# 			info['level'].append(level)
+
+	# 	print(info)
+
+	# 	info_df = self.sort_by_key(info, "year", ascending=False)
+
+	# 	return info_df
+
+	# <AUTORES 
+	# 	NOME-PARA-CITACAO
+
+	# <DADOS-BASICOS-DE-CURSOS-CURTA-DURACAO-MINISTRADO
+	# 	NIVEL-DO-CURSO="EXTENSAO" 
+	# 	TITULO
+	# 	ANO
+
+	# NOME-PARA-CITACAO. TITULO. ANO. Curso de curta duração ministrado/Extensão)
+
+	# def get_registers(self):
+	# 	# Find the tag
+	# 	xml_path = 'REGISTRO-OU-PATENTE'
+	# 	registers = self.xml_file.findall(f".//{xml_path}")
+
+	# 	info = {'authors': [], 'year': [], 'title': [], 'register_type': [], 'level': []}
+	# 	for register in registers:
+	# 		if register.tag != 'APRESENTACAO-DE-TRABALHO':
+	# 			year = None
+	# 			title = None
+	# 			register_type = None
+	# 			level = None
+	# 			for tag in register:
+	# 				if 'DADOS-BASICOS' in tag.tag:
+	# 					year = tag.attrib['ANO']
+	# 					title = tag.attrib['TITULO']
+	# 					register_type = register.tag.replace('-', ' ').capitalize()
+	# 					if 'NIVEL-DO-CURSO' in tag.attrib.keys():
+	# 						level = tag.attrib['NIVEL-DO-CURSO']
+
+	# 			info['authors'].append(self.get_authors_string(register))
+	# 			info['year'].append(year)
+	# 			info['title'].append(title)
+	# 			info['register_type'].append(register_type)
+	# 			info['level'].append(level)
+
+	# 	print(info)
+
+	# 	info_df = self.sort_by_key(info, "year", ascending=False)
+
+	# 	return info_df
